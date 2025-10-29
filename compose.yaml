@@ -1,0 +1,23 @@
+services:
+  postgres:
+    container_name: warehouse_postgres
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_DB=warehouseDB'
+      - 'POSTGRES_PASSWORD=mypass'
+      - 'POSTGRES_USER=hamza'
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5432'
+
+#volumes:
+#  postgres_data:
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: postgres_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
