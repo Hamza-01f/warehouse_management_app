@@ -11,6 +11,7 @@ import com.brief.demo.mappers.UserMapper;
 import com.brief.demo.model.User;
 import com.brief.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 @Service

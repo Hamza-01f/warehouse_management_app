@@ -9,10 +9,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ProductRepository extends JpaRepository<Long , Product> {
+public interface ProductRepository extends JpaRepository<Product , Long> {
     Optional<Product> findBySku(String sku);
     List<Product> findByIsActiveTrue();
     boolean existsBySku(String sku);
-    Long existsBySkuAndIdNot(String sku , Long id);
-
+    boolean existsBySkuAndIdNot(String sku , Long id);
 }
