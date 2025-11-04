@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "sales_orders")
@@ -14,15 +15,16 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class SalesOrder {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)
     private User client;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warehouse_id", nullable = false)
     private Warehouse warehouse;
 
@@ -40,4 +42,7 @@ public class SalesOrder {
     private String street;
 
     private String zipCode;
+
+    @OneToMany(mappedBy = "salesOrder" , cascade = CascadeType.ALL , orphanRemoval = true)
+    private List<SalesOrderLine> orderLines;
 }
