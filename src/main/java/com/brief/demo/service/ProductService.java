@@ -22,9 +22,9 @@ public class ProductService {
     private final ProductMapper productMapper;
 
     public ProductResponseDTO createProduct(ProductRequestDTO request) {
-        if (productRepository.existsBySku(request.getSku())) {
-            throw new DuplicateResourceException("Product with SKU " + request.getSku() + " already exists");
-        }
+//        if (productRepository.existsBySku(request.getSku())) {
+//            throw new DuplicateResourceException("Product with SKU " + request.getSku() + " already exists");
+//        }
 
         Product product = productMapper.toEntity(request);
         Product savedProduct = productRepository.save(product);

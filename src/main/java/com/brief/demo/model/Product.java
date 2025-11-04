@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Entity
 @Table(name = "products")
@@ -33,4 +34,11 @@ public class Product {
 
     @Builder.Default
     private Boolean isActive = true;
+
+    @PrePersist
+    public void generatSku(){
+        if(this.sku == null){
+            this.sku = "PROD-" + UUID.randomUUID().toString().substring(0 , 8).toUpperCase();
+        }
+    }
 }

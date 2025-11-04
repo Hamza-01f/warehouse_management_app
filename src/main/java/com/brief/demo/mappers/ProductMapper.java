@@ -11,7 +11,7 @@ public class ProductMapper {
 
     public Product toEntity(ProductRequestDTO request) {
         return Product.builder()
-                .sku(request.getSku())
+//                .sku(request.getSku())
                 .name(request.getName())
                 .image(request.getImage())
                 .price(request.getPrice())

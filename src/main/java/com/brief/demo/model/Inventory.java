@@ -15,17 +15,23 @@ public class Inventory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warehouse_id", nullable = false)
     private Warehouse warehouse;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @Column(name = "quantity_available")
-    private Integer quantityAvailable;
+    @Column(name = "quantity_on_hand", nullable = false)
+    @Builder.Default
+    private Integer quantityOnHand = 0;
 
-    @Column(name = "quantity_reserved")
-    private Integer quantityReserved;
+    @Column(name = "quantity_reserved", nullable = false)
+    @Builder.Default
+    private Integer quantityReserved = 0;
+
+    public Integer getAvailableQuantity() {
+        return quantityOnHand - quantityReserved;
+    }
 }

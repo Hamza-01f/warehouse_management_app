@@ -1,6 +1,5 @@
 package com.brief.demo.aop;
 
-
 import com.brief.demo.enums.Role;
 import com.brief.demo.exception.UnauthorizedException;
 import org.aspectj.lang.annotation.Aspect;
@@ -15,7 +14,7 @@ public class AuthorizationAspect {
         return Role.ADMIN;
     }
 
-    @Before("@annotation(com.example.aop.RequiresAdmin)")
+    @Before("@annotation(com.brief.demo.aop.RequiresAdmin)")
     public void checkAdminAccess(){
         Role currentRole = getCurrentUserRole();
         if (currentRole != Role.ADMIN) {
@@ -23,10 +22,10 @@ public class AuthorizationAspect {
         }
     }
 
-    @Before("@annotation(com.example.aop.RequiresWarehouseManager)")
+    @Before("@annotation(com.brief.demo.aop.RequiresWarehouseManager)")
     public void checkWarehouseManagerAccess(){
         Role currentRole = getCurrentUserRole();
-        if(currentRole != Role.ADMIN || currentRole != Role.WAREHOUSE_MANAGER){
+        if(currentRole != Role.ADMIN && currentRole != Role.WAREHOUSE_MANAGER){
             throw new UnauthorizedException("Warehouse manager or admin role required");
         }
     }
