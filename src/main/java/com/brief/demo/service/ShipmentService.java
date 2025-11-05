@@ -41,7 +41,7 @@ public class ShipmentService {
 
         Shipment shipment = Shipment.builder()
                 .salesOrder(salesOrder)
-                .carrier(request.getCarrier())
+//                .carrier(request.getCarrier())
                 .trackingNumber(request.getTrackingNumber())
                 .status(ShipmentStatus.PLANNED)
                 .build();
@@ -106,7 +106,7 @@ public class ShipmentService {
     private ShipmentResponseDTO mapToResponse(Shipment shipment) {
         ShipmentResponseDTO response = new ShipmentResponseDTO();
         response.setId(shipment.getId());
-        response.setCarrier(shipment.getCarrier());
+//        response.setCarrier(shipment.getCarrier());
         response.setTrackingNumber(shipment.getTrackingNumber());
         response.setStatus(shipment.getStatus());
         // You would need to map sales order here if needed

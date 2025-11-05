@@ -7,7 +7,7 @@ import lombok.Data;
 public class ShipmentResponseDTO {
     private Long id;
     private SalesOrderResponseDTO salesOrder;
-    private String carrier;
+//    private String carrier;
     private String trackingNumber;
     private ShipmentStatus status;
 }

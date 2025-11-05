@@ -1,6 +1,7 @@
 package com.brief.demo.controller;
 
 //import com.brief.demo.aop.RequiresWarehouseManager;
+import com.brief.demo.aop.RequiresWarehouseManager;
 import com.brief.demo.dto.request.SalesOrderRequestDTO;
 import com.brief.demo.dto.response.ApiResponseDTO;
 import com.brief.demo.dto.response.SalesOrderResponseDTO;
@@ -27,7 +28,7 @@ public class SalesOrderController {
     }
 
     @GetMapping
-//    @RequiresWarehouseManager
+    @RequiresWarehouseManager
     public ResponseEntity<List<SalesOrderResponseDTO>> getAllSalesOrders() {
         List<SalesOrderResponseDTO> orders = salesOrderService.getAllSalesOrders();
         return ResponseEntity.ok(orders);
@@ -46,7 +47,7 @@ public class SalesOrderController {
     }
 
     @PostMapping("/{id}/reserve")
-//    @RequiresWarehouseManager
+    @RequiresWarehouseManager
     public ResponseEntity<ApiResponseDTO> reserveStock(@PathVariable Long id) {
         salesOrderService.reserveStock(id);
         return ResponseEntity.ok(new ApiResponseDTO("Stock reserved successfully", true));

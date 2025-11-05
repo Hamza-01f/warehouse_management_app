@@ -21,7 +21,7 @@ public class InventoryMapper {
         response.setId(inventory.getId());
         response.setQuantityOnHand(inventory.getQuantityOnHand());
         response.setQuantityReserved(inventory.getQuantityReserved());
-        response.setAvailableQuantity(inventory.getAvailableQuantity());
+        response.setAvailableQuantity(inventory.getAvailable_quantity());
         return response;
     }
 
