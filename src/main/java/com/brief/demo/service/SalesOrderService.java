@@ -58,7 +58,7 @@ public class SalesOrderService {
                     .product(product)
                     .quantity(lineRequest.getQuantity())
                     .quantityReserved(0)
-                    .quantityOrdered(0)
+                    .quantityOrdered(lineRequest.getQuantity())
                     .price(product.getPrice())
                     .build();
 
@@ -125,7 +125,7 @@ public class SalesOrderService {
         for (Inventory inventory : availableInventories) {
             if (quantityToReserve <= 0) break;
 
-            Integer available = inventory.getAvailableQuantity();
+            Integer available = inventory.getAvailable_quantity();
             Integer toReserve = Math.min(available, quantityToReserve);
 
             inventory.setQuantityReserved(inventory.getQuantityReserved() + toReserve);

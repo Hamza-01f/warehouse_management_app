@@ -21,7 +21,7 @@ public class Shipment {
     @JoinColumn(name = "sales_order_id", nullable = false)
     private SalesOrder salesOrder;
 
-    private String carrier;
+//    private String carrier;
 
     private String trackingNumber;
 

@@ -48,7 +48,7 @@ public class InventoryService {
 
         // Create initial movement
         if (request.getQuantityOnHand() != null && request.getQuantityOnHand() > 0) {
-            createMovement(savedInventory, MovementType.INBOUND, request.getQuantityOnHand(), "Initial stock");
+            createMovement(savedInventory, MovementType.IN, request.getQuantityOnHand());
         }
 
         return inventoryMapper.toResponse(savedInventory);
@@ -90,8 +90,8 @@ public class InventoryService {
         // Create movement if quantity changed
         if (request.getQuantityOnHand() != null && !request.getQuantityOnHand().equals(oldQuantity)) {
             int quantityDiff = request.getQuantityOnHand() - oldQuantity;
-            MovementType movementType = quantityDiff > 0 ? MovementType.INBOUND : MovementType.OUTBOUND;
-            createMovement(updatedInventory, movementType, Math.abs(quantityDiff), "Manual adjustment");
+            MovementType movementType = quantityDiff > 0 ? MovementType.IN : MovementType.OUT;
+            createMovement(updatedInventory, movementType, Math.abs(quantityDiff));
         }
 
         return inventoryMapper.toResponse(updatedInventory);
@@ -104,32 +104,31 @@ public class InventoryService {
 
         // Update inventory based on movement type
         switch (request.getType()) {
-            case INBOUND:
+            case IN:
                 inventory.setQuantityOnHand(inventory.getQuantityOnHand() + request.getQuantity());
                 break;
-            case OUTBOUND:
-                if (inventory.getAvailableQuantity() < request.getQuantity()) {
+            case OUT:
+                if (inventory.getAvailable_quantity() < request.getQuantity()) {
                     throw new IllegalStateException("Insufficient available quantity");
                 }
                 inventory.setQuantityOnHand(inventory.getQuantityOnHand() - request.getQuantity());
                 break;
-            case ADJUSTMENT:
+            case ADJ:
                 inventory.setQuantityOnHand(request.getQuantity());
                 break;
         }
 
         inventoryRepository.save(inventory);
-        InventoryMovement movement = createMovement(inventory, request.getType(), request.getQuantity(), request.getReason());
+        InventoryMovement movement = createMovement(inventory, request.getType(), request.getQuantity());
 
         return mapToMovementResponse(movement);
     }
 
-    private InventoryMovement createMovement(Inventory inventory, MovementType type, Integer quantity, String reason) {
+    private InventoryMovement createMovement(Inventory inventory, MovementType type, Integer quantity) {
         InventoryMovement movement = InventoryMovement.builder()
                 .inventory(inventory)
                 .type(type)
                 .quantity(quantity)
-//                .reason(reason)
                 .build();
         return inventoryMovementRepository.save(movement);
     }

@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class SalesOrderRequestDTO {
+public class    SalesOrderRequestDTO {
     private Long warehouseId;
     private String country;
     private String city;
@@ -19,4 +19,3 @@ public class SalesOrderRequestDTO {
         private Integer quantity;
     }
 }
-

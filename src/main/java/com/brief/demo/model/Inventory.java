@@ -31,7 +31,13 @@ public class Inventory {
     @Builder.Default
     private Integer quantityReserved = 0;
 
-    public Integer getAvailableQuantity() {
-        return quantityOnHand - quantityReserved;
+
+    @Column(name = "available_quanitity")
+    private Integer available_quantity;
+
+    @PrePersist
+    @PreUpdate
+    public void getAvailableQuantity() {
+        this.available_quantity = quantityOnHand - quantityReserved;
     }
 }
