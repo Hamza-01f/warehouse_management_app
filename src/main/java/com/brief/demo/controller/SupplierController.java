@@ -1,6 +1,7 @@
 package com.brief.demo.controller;
 
 //import com.brief.demo.aop.RequiresAdmin;
+import com.brief.demo.aop.RequiresAdmin;
 import com.brief.demo.dto.request.SupplierRequestDTO;
 import com.brief.demo.dto.response.ApiResponseDTO;
 import com.brief.demo.dto.response.SupplierResponseDTO;
@@ -44,7 +45,7 @@ public class SupplierController {
     }
 
     @PutMapping("/{id}")
-//    @RequiresAdmin
+    @RequiresAdmin
     public ResponseEntity<SupplierResponseDTO> updateSupplier(
             @PathVariable Long id,
             @RequestBody SupplierRequestDTO request) {
@@ -53,14 +54,14 @@ public class SupplierController {
     }
 
     @DeleteMapping("/{id}")
-//    @RequiresAdmin
+    @RequiresAdmin
     public ResponseEntity<ApiResponseDTO> deleteSupplier(@PathVariable Long id) {
         supplierService.deleteSupplier(id);
         return ResponseEntity.ok(new ApiResponseDTO("Supplier deleted successfully", true));
     }
 
     @PatchMapping("/{id}/activate")
-//    @RequiresAdmin
+    @RequiresAdmin
     public ResponseEntity<ApiResponseDTO> activateSupplier(@PathVariable Long id) {
         supplierService.activateSupplier(id);
         return ResponseEntity.ok(new ApiResponseDTO("Supplier activated successfully", true));
