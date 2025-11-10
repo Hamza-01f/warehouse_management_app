@@ -32,12 +32,16 @@ public class Inventory {
     private Integer quantityReserved = 0;
 
 
-    @Column(name = "available_quanitity")
-    private Integer available_quantity;
+//    @Column(name = "available_quanitity")
+//    private Integer available_quantity;
 
-    @PrePersist
-    @PreUpdate
-    public void getAvailableQuantity() {
-        this.available_quantity = quantityOnHand - quantityReserved;
+//    @PrePersist
+//    @PreUpdate
+//    public void getAvailableQuantity() {
+//        this.available_quantity = quantityOnHand - quantityReserved;
+//    }
+    @Transient // Make it transient since it's calculated
+    public Integer getAvailable_quantity() {
+        return quantityOnHand - quantityReserved;
     }
 }
