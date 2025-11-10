@@ -24,6 +24,15 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiResponseDTO> handleBusinessException(BusinessException ex) {
+        return new ResponseEntity<>(
+                new ApiResponseDTO(ex.getMessage(), false),
+                HttpStatus.CONFLICT
+        );
+    }
+
+
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ApiResponseDTO> handleUnauthorized(UnauthorizedException ex) {
         return new ResponseEntity<>(

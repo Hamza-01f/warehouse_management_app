@@ -12,6 +12,6 @@ import java.util.UUID;
 public interface ProductRepository extends JpaRepository<Product , Long> {
     Optional<Product> findBySku(String sku);
     List<Product> findByIsActiveTrue();
-    boolean existsBySku(String sku);
+    Product existsBySku(String sku);
     boolean existsBySkuAndIdNot(String sku , Long id);
 }

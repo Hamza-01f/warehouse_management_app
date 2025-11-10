@@ -14,6 +14,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     List<Inventory> findByWarehouseId(Long warehouseId);
     Optional<Inventory> findByWarehouseIdAndProductId(Long warehouseId, Long productId);
     List<Inventory> findByProductId(Long productId);
+    List<Inventory> findByProductSku(String sku);
 
     @Query("SELECT i FROM Inventory i WHERE i.product.id = :productId AND i.quantityOnHand - i.quantityReserved >= :quantity")
     List<Inventory> findAvailableInventoryForProduct(@Param("productId") Long productId, @Param("quantity") Integer quantity);

@@ -1,6 +1,7 @@
 package com.brief.demo.controller;
 
 //import com.brief.demo.aop.RequiresAdmin;
+import com.brief.demo.aop.RequiresAdmin;
 import com.brief.demo.dto.request.ProductRequestDTO;
 import com.brief.demo.dto.request.ProductRequestUpdateDTO;
 import com.brief.demo.dto.response.ApiResponseDTO;
@@ -20,7 +21,7 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-//    @RequiresAdmin
+    @RequiresAdmin
     public ResponseEntity<ProductResponseDTO> createProduct( @RequestBody ProductRequestDTO request) {
         ProductResponseDTO response = productService.createProduct(request);
         return ResponseEntity.ok(response);
@@ -45,7 +46,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-//    @RequiresAdmin
+    @RequiresAdmin
     public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable Long id,
             @RequestBody ProductRequestUpdateDTO request) {
@@ -54,16 +55,24 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-//    @RequiresAdmin
+    @RequiresAdmin
     public ResponseEntity<ApiResponseDTO> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.ok(new ApiResponseDTO("Product deleted successfully", true));
     }
 
     @PatchMapping("/{id}/activate")
-//    @RequiresAdmin
+    @RequiresAdmin
     public ResponseEntity<ApiResponseDTO> activateProduct(@PathVariable Long id) {
         productService.activateProduct(id);
         return ResponseEntity.ok(new ApiResponseDTO("Product activated successfully", true));
+    }
+
+    //----------------- added method ---------------------------------------
+    @PatchMapping("/{SKU}/deactivate")
+    @RequiresAdmin
+    public ResponseEntity<ApiResponseDTO> deactivateProduct(@PathVariable String sku){
+        productService.deactivatProduct(sku);
+        return  ResponseEntity.ok(new ApiResponseDTO("the product was deactivated with success", true));
     }
 }

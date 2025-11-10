@@ -24,15 +24,15 @@ public class PurchaseOrderMapper {
         response.setStatus(purchaseOrder.getStatus());
         response.setCreatedAt(purchaseOrder.getCreatedAt());
 
-        if (purchaseOrder.getSupplier() != null) {
-            // Map supplier if needed
-        }
-
-        if (purchaseOrder.getOrderLines() != null) {
-            response.setOrderLines(purchaseOrder.getOrderLines().stream()
-                    .map(this::toLineResponse)
-                    .collect(Collectors.toList()));
-        }
+//        if (purchaseOrder.getSupplier() != null) {
+//            // Map supplier if needed
+//        }
+//
+//        if (purchaseOrder.getOrderLines() != null) {
+//            response.setOrderLines(purchaseOrder.getOrderLines().stream()
+//                    .map(this::toLineResponse)
+//                    .collect(Collectors.toList()));
+//        }
 
         return response;
     }

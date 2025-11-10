@@ -99,14 +99,14 @@ public class PurchaseOrderService {
                 inventoryRepository.save(inventory);
 
                 // Create inbound movement
-                inventoryService.createMovement(
-                        com.brief.demo.dto.request.InventoryMovementRequestDTO.builder()
-                                .inventoryId(inventory.getId())
-                                .type(com.brief.demo.enums.MovementType.IN)
-                                .quantity(line.getQuantity())
-                                .reason("Purchase order reception: " + poId)
-                                .build()
-                );
+//                inventoryService.createMovement(
+//                        com.brief.demo.dto.request.InventoryMovementRequestDTO.builder()
+//                                .inventoryId(inventory.getId())
+//                                .type(com.brief.demo.enums.MovementType.IN)
+//                                .quantity(line.getQuantity())
+//                                .reason("Purchase order reception: " + poId)
+//                                .build()
+//                );
             }
         }
 

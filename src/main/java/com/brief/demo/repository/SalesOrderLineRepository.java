@@ -10,4 +10,5 @@ import java.util.List;
 public interface SalesOrderLineRepository extends JpaRepository<SalesOrderLine, Long> {
     List<SalesOrderLine> findBySalesOrderId(Long salesOrderId);
     List<SalesOrderLine> findByProductIdAndQuantityReservedGreaterThan(Long productId, Integer quantity);
+    List<SalesOrderLine> findByProductSku(String sku);
 }
