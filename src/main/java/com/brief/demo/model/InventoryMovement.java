@@ -30,4 +30,12 @@ public class    InventoryMovement {
 
     @Builder.Default
     private LocalDateTime occurredAt = LocalDateTime.now();
+
+    @PrePersist
+    protected void onCreate() {
+        if (occurredAt == null) {
+            occurredAt = LocalDateTime.now();
+        }
+    }
+
 }

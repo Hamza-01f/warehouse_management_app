@@ -40,8 +40,29 @@ public class Inventory {
 //    public void getAvailableQuantity() {
 //        this.available_quantity = quantityOnHand - quantityReserved;
 //    }
-    @Transient // Make it transient since it's calculated
-    public Integer getAvailable_quantity() {
-        return quantityOnHand - quantityReserved;
+@Transient
+public Integer getAvailable_Quantity() {
+    return quantityOnHand - quantityReserved;
+}
+
+    public void reserveQuantity(Integer quantity) {
+        if (quantity > getAvailable_Quantity()) {
+            throw new IllegalStateException("Insufficient available quantity");
+        }
+        this.quantityReserved += quantity;
+    }
+
+    public void releaseReservedQuantity(Integer quantity) {
+        if (quantity > this.quantityReserved) {
+            throw new IllegalStateException("Cannot release more than reserved quantity");
+        }
+        this.quantityReserved -= quantity;
+    }
+
+    public void adjustQuantityOnHand(Integer newQuantity) {
+        if (newQuantity < this.quantityReserved) {
+            throw new IllegalStateException("Quantity on hand cannot be less than reserved quantity");
+        }
+        this.quantityOnHand = newQuantity;
     }
 }

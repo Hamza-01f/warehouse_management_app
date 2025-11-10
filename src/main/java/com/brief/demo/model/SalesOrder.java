@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -43,6 +44,41 @@ public class SalesOrder {
 
     private String zipCode;
 
-    @OneToMany(mappedBy = "salesOrder" , cascade = CascadeType.ALL , orphanRemoval = true)
-    private List<SalesOrderLine> orderLines;
+    @OneToMany(mappedBy = "salesOrder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<SalesOrderLine> orderLines = new ArrayList<>();
+
+    @OneToOne(mappedBy = "salesOrder", cascade = CascadeType.ALL)
+    private Shipment shipment;
+
+    @Column
+    private LocalDateTime reservedAt;
+
+    @Column
+    private LocalDateTime shippedAt;
+
+    @Column
+    private LocalDateTime deliveredAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (status == null) {
+            status = OrderStatus.CREATED;
+        }
+    }
+
+    public boolean canBeReserved() {
+        return status == OrderStatus.CREATED;
+    }
+
+    public boolean canBeShipped() {
+        return status == OrderStatus.RESERVED;
+    }
+
+    public boolean canBeDelivered() {
+        return status == OrderStatus.SHIPPED;
+    }
 }
