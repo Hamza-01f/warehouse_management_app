@@ -8,5 +8,6 @@ public class POLineResponseDTO {
     private Long id;
     private ProductResponseDTO product;
     private Integer quantity;
+    private Integer quantityReceived;
     private BigDecimal price;
 }

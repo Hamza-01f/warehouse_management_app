@@ -2,6 +2,7 @@ package com.brief.demo.mappers;
 
 import com.brief.demo.dto.request.ShipmentRequestDTO;
 import com.brief.demo.dto.response.ShipmentResponseDTO;
+import com.brief.demo.enums.ShipmentStatus;
 import com.brief.demo.model.SalesOrder;
 import com.brief.demo.model.Shipment;
 import com.brief.demo.repository.SalesOrderRepository;
@@ -22,7 +23,7 @@ public class ShipmentMapper {
         return Shipment.builder()
                 .salesOrder(salesOrder)
                 .trackingNumber(request.getTrackingNumber())
-                .status(com.brief.demo.enums.ShipmentStatus.PLANNED)
+                .status(ShipmentStatus.PLANNED)
                 .build();
     }
 

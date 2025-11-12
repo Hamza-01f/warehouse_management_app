@@ -32,18 +32,19 @@ public class Inventory {
     private Integer quantityReserved = 0;
 
 
-//    @Column(name = "available_quanitity")
-//    private Integer available_quantity;
+    @Column(name = "available_quanitity")
+    private Integer available_quantity;
 
-//    @PrePersist
-//    @PreUpdate
-//    public void getAvailableQuantity() {
-//        this.available_quantity = quantityOnHand - quantityReserved;
-//    }
-@Transient
-public Integer getAvailable_Quantity() {
-    return quantityOnHand - quantityReserved;
-}
+    @PrePersist
+    @PreUpdate
+    public void getAvailableQuantity() {
+        this.available_quantity = quantityOnHand - quantityReserved;
+    }
+    @Transient
+    public Integer getAvailable_Quantity() {
+
+        return quantityOnHand - quantityReserved;
+    }
 
     public void reserveQuantity(Integer quantity) {
         if (quantity > getAvailable_Quantity()) {

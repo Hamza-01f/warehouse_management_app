@@ -11,6 +11,5 @@ public class InventoryMovementResponseDTO {
     private InventoryResponseDTO inventory;
     private MovementType type;
     private Integer quantity;
-    private String reason;
     private LocalDateTime occurredAt;
 }

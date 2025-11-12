@@ -51,11 +51,16 @@ public class PurchaseOrderController {
 
     @PostMapping("/{id}/receive")
     public ResponseEntity<PurchaseOrderResponseDTO> receivePurchaseOrder(@PathVariable Long id) {
-        // This would typically have more complex receiving logic
         PurchaseOrderUpdateDTO updateRequest = new PurchaseOrderUpdateDTO();
         updateRequest.setStatus(com.brief.demo.enums.POStatus.RECEIVED);
 
         PurchaseOrderResponseDTO purchaseOrder = purchaseOrderService.updatePurchaseOrderStatus(id, updateRequest);
         return ResponseEntity.ok(purchaseOrder);
+    }
+
+    @PatchMapping("/{id}/approve")
+    public ResponseEntity<PurchaseOrderResponseDTO> approvePurchaseOrder(@PathVariable Long id) {
+        PurchaseOrderResponseDTO approvedOrder = purchaseOrderService.approvePurchaseOrder(id);
+        return ResponseEntity.ok(approvedOrder);
     }
 }

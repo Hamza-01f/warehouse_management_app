@@ -22,7 +22,6 @@ public class ShipmentService {
 
     private final ShipmentRepository shipmentRepository;
     private final SalesOrderRepository salesOrderRepository;
-    private final InventoryService inventoryService;
 
     @Transactional
     public ShipmentResponseDTO createShipment(ShipmentRequestDTO request) {
@@ -33,7 +32,6 @@ public class ShipmentService {
             throw new IllegalStateException("Cannot create shipment for order in status: " + salesOrder.getStatus());
         }
 
-        // Check if shipment already exists
         shipmentRepository.findBySalesOrderId(salesOrder.getId())
                 .ifPresent(s -> {
                     throw new IllegalStateException("Shipment already exists for this order");
@@ -41,18 +39,24 @@ public class ShipmentService {
 
         Shipment shipment = Shipment.builder()
                 .salesOrder(salesOrder)
-//                .carrier(request.getCarrier())
                 .trackingNumber(request.getTrackingNumber())
                 .status(ShipmentStatus.PLANNED)
                 .build();
 
         Shipment savedShipment = shipmentRepository.save(shipment);
 
-        // Update order status
-        salesOrder.setStatus(OrderStatus.SHIPPED);
-        salesOrderRepository.save(salesOrder);
-
         return mapToResponse(savedShipment);
+    }
+
+    @Transactional
+    public void createShipmentForOrder(SalesOrder salesOrder) {
+        Shipment shipment = Shipment.builder()
+                .salesOrder(salesOrder)
+                .trackingNumber(generateTrackingNumber())
+                .status(ShipmentStatus.PLANNED)
+                .build();
+
+        shipmentRepository.save(shipment);
     }
 
     @Transactional
@@ -63,26 +67,20 @@ public class ShipmentService {
         shipment.setStatus(status);
         Shipment updatedShipment = shipmentRepository.save(shipment);
 
-        // If delivered, update order status and reduce inventory
-        if (status == ShipmentStatus.DELIVERED) {
-            SalesOrder salesOrder = shipment.getSalesOrder();
-            salesOrder.setStatus(OrderStatus.DELIVERED);
-            salesOrderRepository.save(salesOrder);
-
-            // Reduce inventory
-            reduceInventoryOnDelivery(salesOrder.getId());
-        }
-
         return mapToResponse(updatedShipment);
     }
 
-    private void reduceInventoryOnDelivery(Long orderId) {
-        SalesOrder salesOrder = salesOrderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Sales order not found"));
+    @Transactional
+    public void updateShipmentStatusByOrder(Long orderId, ShipmentStatus status) {
+        Shipment shipment = shipmentRepository.findBySalesOrderId(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Shipment not found for order"));
 
-        // This would typically involve reducing the actual inventory quantities
-        // For now, we'll just log this action
-        System.out.println("Reducing inventory for order: " + orderId);
+        shipment.setStatus(status);
+        shipmentRepository.save(shipment);
+    }
+
+    private String generateTrackingNumber() {
+        return "TRK-" + System.currentTimeMillis();
     }
 
     public ShipmentResponseDTO getShipmentById(Long id) {
@@ -106,10 +104,8 @@ public class ShipmentService {
     private ShipmentResponseDTO mapToResponse(Shipment shipment) {
         ShipmentResponseDTO response = new ShipmentResponseDTO();
         response.setId(shipment.getId());
-//        response.setCarrier(shipment.getCarrier());
         response.setTrackingNumber(shipment.getTrackingNumber());
         response.setStatus(shipment.getStatus());
-        // You would need to map sales order here if needed
         return response;
     }
 }

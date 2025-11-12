@@ -26,6 +26,7 @@ public class    InventoryMovement {
     @Column(nullable = false)
     private MovementType type;
 
+    @Column(nullable = false)
     private Integer quantity;
 
     @Builder.Default

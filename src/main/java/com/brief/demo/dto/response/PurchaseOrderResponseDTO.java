@@ -11,5 +11,8 @@ public class PurchaseOrderResponseDTO {
     private SupplierResponseDTO supplier;
     private POStatus status;
     private LocalDate createdAt;
+    private LocalDate approvedAt;
+    private LocalDate receivedAt;
     private List<POLineResponseDTO> orderLines;
+    private BackOrderResponseDTO backOrder;
 }

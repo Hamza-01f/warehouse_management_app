@@ -17,6 +17,9 @@ public class SalesOrderMapper {
         response.setId(salesOrder.getId());
         response.setStatus(salesOrder.getStatus());
         response.setCreatedAt(salesOrder.getCreatedAt());
+        response.setReservedAt(salesOrder.getReservedAt());
+        response.setShippedAt(salesOrder.getShippedAt());
+        response.setDeliveredAt(salesOrder.getDeliveredAt());
         response.setCountry(salesOrder.getCountry());
         response.setCity(salesOrder.getCity());
         response.setStreet(salesOrder.getStreet());
@@ -37,7 +40,8 @@ public class SalesOrderMapper {
         lineResponse.setId(line.getId());
         lineResponse.setQuantity(line.getQuantity());
         lineResponse.setQuantityReserved(line.getQuantityReserved());
-        lineResponse.setQuantityOrdered(line.getQuantityOrdered());
+        lineResponse.setQuantityFulfilled(line.getQuantityFulfilled());
+        lineResponse.setBackorderQuantity(line.getBackorderQuantity());
         return lineResponse;
     }
 }

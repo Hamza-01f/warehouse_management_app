@@ -20,7 +20,7 @@ public class SupplierController {
     private final SupplierService supplierService;
 
     @PostMapping
-//    @RequiresAdmin
+    @RequiresAdmin
     public ResponseEntity<SupplierResponseDTO> createSupplier(@RequestBody SupplierRequestDTO request) {
         SupplierResponseDTO response = supplierService.createSupplier(request);
         return ResponseEntity.ok(response);

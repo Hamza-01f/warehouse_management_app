@@ -26,13 +26,15 @@ public class SalesOrderLine {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @Column(nullable = false)
     private Integer quantity;
 
+    @Column(nullable = false)
     private BigDecimal price;
 
     @Column(name = "quantity_reserved")
     @Builder.Default
-    private Integer quantityReserved;
+    private Integer quantityReserved = 0;
 
     @Column(name = "quantity_fulfilled")
     @Builder.Default

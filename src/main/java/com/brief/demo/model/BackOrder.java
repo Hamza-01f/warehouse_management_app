@@ -27,6 +27,10 @@ public class BackOrder {
     @JoinColumn(name = "product_id")
     private Product product;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id")
+    private Warehouse warehouse;
+
     @Column(nullable = false)
     private Integer quantity;
 
@@ -39,6 +43,10 @@ public class BackOrder {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BackOrderStatus status;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean autoPurchaseOrder = false;
 
     @PrePersist
     protected void onCreate() {

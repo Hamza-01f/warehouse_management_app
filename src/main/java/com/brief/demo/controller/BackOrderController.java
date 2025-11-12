@@ -46,4 +46,10 @@ public class BackOrderController {
         backOrderService.processPendingBackOrders();
         return ResponseEntity.ok("Pending backorders processed successfully");
     }
+
+    @PostMapping("/{id}/activate")
+    public ResponseEntity<BackOrderResponseDTO> activateBackOrder(@PathVariable Long id) {
+        BackOrderResponseDTO backOrder = backOrderService.activateBackOrder(id);
+        return ResponseEntity.ok(backOrder);
+    }
 }

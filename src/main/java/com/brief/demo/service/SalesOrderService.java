@@ -2,7 +2,9 @@ package com.brief.demo.service;
 
 import com.brief.demo.dto.request.SalesOrderRequestDTO;
 import com.brief.demo.dto.response.SalesOrderResponseDTO;
+import com.brief.demo.enums.MovementType;
 import com.brief.demo.enums.OrderStatus;
+import com.brief.demo.enums.ShipmentStatus;
 import com.brief.demo.exception.ResourceNotFoundException;
 import com.brief.demo.mappers.SalesOrderMapper;
 import com.brief.demo.model.*;
@@ -11,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,9 +26,11 @@ public class SalesOrderService {
     private final UserRepository userRepository;
     private final WarehouseRepository warehouseRepository;
     private final ProductRepository productRepository;
-    private final InventoryRepository inventoryRepository;
     private final InventoryService inventoryService;
     private final SalesOrderMapper salesOrderMapper;
+    private final BackOrderService backOrderService;
+    private final ShipmentService shipmentService;
+    private final InventoryRepository inventoryRepository;
 
     @Transactional
     public SalesOrderResponseDTO createSalesOrder(SalesOrderRequestDTO request, Long clientId) {
@@ -35,7 +39,6 @@ public class SalesOrderService {
         Warehouse warehouse = warehouseRepository.findById(request.getWarehouseId())
                 .orElseThrow(() -> new ResourceNotFoundException("Warehouse not found"));
 
-        // Create sales order
         SalesOrder salesOrder = SalesOrder.builder()
                 .client(client)
                 .warehouse(warehouse)
@@ -58,14 +61,14 @@ public class SalesOrderService {
                     .product(product)
                     .quantity(lineRequest.getQuantity())
                     .quantityReserved(0)
-                    .quantityOrdered(lineRequest.getQuantity())
+                    .quantityFulfilled(0)
+                    .backorderQuantity(0)
                     .price(product.getPrice())
                     .build();
 
             salesOrderLineRepository.save(orderLine);
         }
 
-        // Reserve stock
         reserveStock(savedOrder.getId());
 
         return salesOrderMapper.toResponse(savedOrder);
@@ -76,62 +79,186 @@ public class SalesOrderService {
         SalesOrder salesOrder = salesOrderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Sales order not found"));
 
-        if (salesOrder.getStatus() != OrderStatus.CREATED) {
+        if (!salesOrder.canBeReserved()) {
             throw new IllegalStateException("Cannot reserve stock for order in status: " + salesOrder.getStatus());
         }
 
         List<SalesOrderLine> orderLines = salesOrderLineRepository.findBySalesOrderId(orderId);
-        boolean canFulfill = true;
+        boolean allLinesReserved = true;
 
-        // Check availability for all lines
         for (SalesOrderLine line : orderLines) {
-            if (!inventoryService.checkAvailability(line.getProduct().getId(), line.getQuantity())) {
-                canFulfill = false;
-                break;
+            // Calculate
+            Integer totalAvailable = getTotalAvailableQuantity(line.getProduct().getId());
+            Integer quantityNeeded = line.getQuantity();
+
+            System.out.println("Product: " + line.getProduct().getName() +
+                    ", Requested: " + quantityNeeded +
+                    ", Available: " + totalAvailable);
+
+            if (totalAvailable >= quantityNeeded) {
+                // Enough
+                boolean reserved = inventoryService.reserveStockForOrder(line, salesOrder.getWarehouse());
+                if (!reserved) {
+                    allLinesReserved = false;
+                }
+            } else {
+
+                Integer availableToReserve = Math.min(totalAvailable, quantityNeeded);
+                boolean partiallyReserved = tryPartialReservation(line, salesOrder.getWarehouse(), availableToReserve);
+
+                if (partiallyReserved) {
+                    allLinesReserved = false;
+                    Integer backorderQty = quantityNeeded - availableToReserve;
+                    line.setBackorderQuantity(backorderQty);
+
+                    System.out.println("Creating backorder for " + backorderQty + " units");
+                    backOrderService.createBackOrder(line, salesOrder.getWarehouse(), backorderQty);
+                } else {
+                    allLinesReserved = false;
+
+                    line.setBackorderQuantity(quantityNeeded);
+                    backOrderService.createBackOrder(line, salesOrder.getWarehouse(), quantityNeeded);
+                }
             }
         }
 
-        if (canFulfill) {
-            // Reserve stock for each line
-            for (SalesOrderLine line : orderLines) {
-                reserveStockForLine(line, salesOrder.getWarehouse().getId());
-                line.setQuantityReserved(line.getQuantity());
-            }
-
+        if (allLinesReserved) {
             salesOrder.setStatus(OrderStatus.RESERVED);
-            salesOrderRepository.save(salesOrder);
+            salesOrder.setReservedAt(LocalDateTime.now());
+            shipmentService.createShipmentForOrder(salesOrder);
+            System.out.println("Order fully reserved and shipment created");
+        } else if (orderLines.stream().anyMatch(line -> line.getQuantityReserved() > 0)) {
+            salesOrder.setStatus(OrderStatus.PARTIALLY_FULFILLED);
+            System.out.println("Order partially fulfilled, backorders created");
         } else {
-            // Handle backorder scenario
-            for (SalesOrderLine line : orderLines) {
-                Integer available = inventoryRepository.getTotalAvailableQuantityByProductId(line.getProduct().getId());
-                if (available != null) {
-                    line.setQuantityReserved(Math.min(line.getQuantity(), available));
-                    line.setQuantityOrdered(line.getQuantity() - line.getQuantityReserved());
-                } else {
-                    line.setQuantityOrdered(line.getQuantity());
-                }
-            }
-            // Order remains in CREATED status with partial reservation
+            salesOrder.setStatus(OrderStatus.CREATED);
+            System.out.println("No stock available, backorders created");
         }
 
         salesOrderLineRepository.saveAll(orderLines);
+        salesOrderRepository.save(salesOrder);
     }
 
-    private void reserveStockForLine(SalesOrderLine line, Long warehouseId) {
-        Integer quantityToReserve = line.getQuantity();
-        List<Inventory> availableInventories = inventoryRepository
-                .findAvailableInventoryForProduct(line.getProduct().getId(), quantityToReserve);
+    private Integer getTotalAvailableQuantity(Long productId) {
+        Integer available = inventoryRepository.getTotalAvailableQuantityByProductId(productId);
+        return available != null ? available : 0;
+    }
+
+    private boolean tryPartialReservation(SalesOrderLine line, Warehouse preferredWarehouse, Integer quantityToReserve) {
+        if (quantityToReserve <= 0) return false;
+
+        boolean reserved = inventoryService.reserveStockForOrder(line, preferredWarehouse);
+        if (reserved && line.getQuantityReserved().equals(quantityToReserve)) {
+            return true;
+        }
+
+        // try another warehouse
+        List<Inventory> availableInventories = inventoryService.findAvailableInventoryForProduct(
+                line.getProduct().getId(), quantityToReserve);
+
+        Integer remainingToReserve = quantityToReserve - line.getQuantityReserved();
 
         for (Inventory inventory : availableInventories) {
-            if (quantityToReserve <= 0) break;
+            if (remainingToReserve <= 0) break;
 
-            Integer available = inventory.getAvailable_quantity();
-            Integer toReserve = Math.min(available, quantityToReserve);
+            if (!inventory.getWarehouse().getId().equals(preferredWarehouse.getId())) {
+                Integer available = inventory.getAvailable_Quantity();
+                if (available > 0) {
+                    Integer toReserve = Math.min(available, remainingToReserve);
+                    inventory.reserveQuantity(toReserve);
+                    inventoryRepository.save(inventory);
 
-            inventory.setQuantityReserved(inventory.getQuantityReserved() + toReserve);
-            quantityToReserve -= toReserve;
+                    line.setQuantityReserved(line.getQuantityReserved() + toReserve);
+                    remainingToReserve -= toReserve;
 
-            inventoryRepository.save(inventory);
+                    inventoryService.createMovement(inventory, MovementType.OUT, toReserve);
+                }
+            }
+        }
+
+        return line.getQuantityReserved() > 0;
+    }
+
+    @Transactional
+    public SalesOrderResponseDTO shipOrder(Long orderId) {
+        SalesOrder salesOrder = salesOrderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sales order not found"));
+
+        if (!salesOrder.canBeShipped()) {
+            throw new IllegalStateException("Order cannot be shipped in current status: " + salesOrder.getStatus());
+        }
+
+        // Process outbound movements for reserved quantities
+        List<SalesOrderLine> orderLines = salesOrderLineRepository.findBySalesOrderId(orderId);
+        for (SalesOrderLine line : orderLines) {
+            if (line.getQuantityReserved() > 0) {
+                inventoryService.processOutboundMovement(
+                        line.getProduct().getId(),
+                        salesOrder.getWarehouse().getId(),
+                        line.getQuantityReserved()
+                );
+                line.setQuantityFulfilled(line.getQuantityReserved());
+                line.setQuantityReserved(0);
+            }
+        }
+
+        salesOrder.setStatus(OrderStatus.SHIPPED);
+        salesOrder.setShippedAt(LocalDateTime.now());
+        SalesOrder updatedOrder = salesOrderRepository.save(salesOrder);
+        salesOrderLineRepository.saveAll(orderLines);
+
+        shipmentService.updateShipmentStatusByOrder(orderId, ShipmentStatus.IN_TRANSIT);
+
+        return salesOrderMapper.toResponse(updatedOrder);
+    }
+
+    @Transactional
+    public SalesOrderResponseDTO deliverOrder(Long orderId) {
+        SalesOrder salesOrder = salesOrderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sales order not found"));
+
+        if (!salesOrder.canBeDelivered()) {
+            throw new IllegalStateException("Order cannot be delivered in current status: " + salesOrder.getStatus());
+        }
+
+        salesOrder.setStatus(OrderStatus.DELIVERED);
+        salesOrder.setDeliveredAt(LocalDateTime.now());
+        SalesOrder updatedOrder = salesOrderRepository.save(salesOrder);
+
+        shipmentService.updateShipmentStatusByOrder(orderId, com.brief.demo.enums.ShipmentStatus.DELIVERED);
+
+        return salesOrderMapper.toResponse(updatedOrder);
+    }
+
+    @Transactional
+    public SalesOrderResponseDTO cancelSalesOrder(Long id) {
+        SalesOrder salesOrder = salesOrderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sales order not found"));
+
+        if (salesOrder.getStatus() == OrderStatus.CANCELED) {
+            throw new IllegalStateException("Order is already canceled");
+        }
+
+        if (salesOrder.getStatus() == OrderStatus.SHIPPED || salesOrder.getStatus() == OrderStatus.DELIVERED) {
+            throw new IllegalStateException("Cannot cancel shipped or delivered order");
+        }
+
+        if (salesOrder.getStatus() == OrderStatus.RESERVED || salesOrder.getStatus() == OrderStatus.PARTIALLY_FULFILLED) {
+            releaseReservedStock(id);
+        }
+
+        backOrderService.cancelBackOrdersForOrder(id);
+
+        salesOrder.setStatus(OrderStatus.CANCELED);
+        SalesOrder updatedOrder = salesOrderRepository.save(salesOrder);
+
+        return salesOrderMapper.toResponse(updatedOrder);
+    }
+
+    private void releaseReservedStock(Long orderId) {
+        List<SalesOrderLine> orderLines = salesOrderLineRepository.findBySalesOrderId(orderId);
+        for (SalesOrderLine line : orderLines) {
+            inventoryService.releaseReservedStock(line);
         }
     }
 
@@ -151,42 +278,5 @@ public class SalesOrderService {
         return salesOrderRepository.findAll().stream()
                 .map(salesOrderMapper::toResponse)
                 .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public SalesOrderResponseDTO cancelSalesOrder(Long id) {
-        SalesOrder salesOrder = salesOrderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sales order not found"));
-
-        if (salesOrder.getStatus() == OrderStatus.CANCELED) {
-            throw new IllegalStateException("Order is already canceled");
-        }
-
-        // Release reserved stock
-        if (salesOrder.getStatus() == OrderStatus.RESERVED) {
-            releaseReservedStock(id);
-        }
-
-        salesOrder.setStatus(OrderStatus.CANCELED);
-        SalesOrder updatedOrder = salesOrderRepository.save(salesOrder);
-
-        return salesOrderMapper.toResponse(updatedOrder);
-    }
-
-    private void releaseReservedStock(Long orderId) {
-        List<SalesOrderLine> orderLines = salesOrderLineRepository.findBySalesOrderId(orderId);
-
-        for (SalesOrderLine line : orderLines) {
-            if (line.getQuantityReserved() > 0) {
-                List<Inventory> inventories = inventoryRepository.findByProductId(line.getProduct().getId());
-                for (Inventory inventory : inventories) {
-                    if (inventory.getQuantityReserved() > 0) {
-                        int toRelease = Math.min(inventory.getQuantityReserved(), line.getQuantityReserved());
-                        inventory.setQuantityReserved(inventory.getQuantityReserved() - toRelease);
-                        inventoryRepository.save(inventory);
-                    }
-                }
-            }
-        }
     }
 }
