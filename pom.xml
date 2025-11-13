@@ -84,7 +84,7 @@
             <version>2.25.2</version>
         </dependency>
 
-        
+
         <!-- Security Crypto (no full Spring Security) -->
         <dependency>
             <groupId>org.springframework.security</groupId>
