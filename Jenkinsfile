@@ -1,104 +1,176 @@
 pipeline {
+    agent any
 
-   agent any
+    environment {
+        // Maven
+        MAVEN_HOME = tool 'Maven'
+        MAVEN_OPTS = "-Xmx1024m -Xms512m"
 
-   tools {
-     jdk 'jdk'
-   }
+        // SonarQube
+        SONAR_SERVER = "SonarQubeLocal"
+        SONAR_PROJECT_KEY = "api-logistique"
+        SONAR_PROJECT_NAME = "API Logistique"
 
-   environment{
-      SONARQUBE_SERVER = 'SonarQubeLocal'
-      IMAGE_NAME = 'warehouse_management'
-      IMAGE_TAG = '${env.BUILD_NUMBER}'
-   }
+        // Docker
+        DOCKER_IMAGE = "hamzaboumanjel/api-logistique"
+        DOCKER_TAG = "${env.BUILD_NUMBER}"
+    }
 
-   stages {
-       stage('checkout'){
-          steps {
-            echo ' checking out the source code ...'
-            checkout scm
-          }
-       }
+    stages {
 
-       stage('Build & Run test'){
-          steps{
-            echo 'Running maven build and unit tests'
-            sh './mvnw clean verify'
-          }
-
-          post{
-           always{
-             junit 'target/surefire-reports/*.xml'
-           }
-          }
-       }
-
-        stage('Code Coverage (JaCoCo)') {
+        /* ============================================================
+           1) CHECKOUT
+        ============================================================ */
+        stage('Checkout') {
             steps {
-                echo 'Generating JaCoCo report...'
-                sh './mvnw jacoco:report'
-                publishHTML(target: [
-                    allowMissing: true,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: 'target/site/jacoco',
-                    reportFiles: 'index.html',
-                    reportName: 'JaCoCo Coverage Report'
-                ])
+                checkout scm
+                script {
+                    env.GIT_COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.GIT_BRANCH = env.BRANCH_NAME ?: "unknown"
+                }
+                echo "📌 Branch: ${env.GIT_BRANCH}, Commit: ${env.GIT_COMMIT_SHORT}"
             }
         }
 
-        stage('static analysing with (SonarQube)'){
-          steps{
-            echo 'Running sonarQube analysis'
-            withSonarQubeEnv("${SONARQUBE_SERVER}"){
-              sh './mvnw sonar:sonar  -Dsonar.projectKey=logistics-api'
+        /* ============================================================
+           2) CLEAN
+        ============================================================ */
+        stage('Clean') {
+            steps {
+                sh "${MAVEN_HOME}/bin/mvn clean"
             }
-          }
         }
 
-        stage('Quality Gate'){
-         steps{
-           timeout(time: 5, unit: 'MINUTES'){
-             waitForQualityGate abortPipeline : true
-           }
-         }
+        /* ============================================================
+           3) COMPILE
+        ============================================================ */
+        stage('Compile') {
+            steps {
+                sh "${MAVEN_HOME}/bin/mvn compile -DskipTests"
+            }
         }
 
-        stage('package'){
-          when{
-            expression{currentBuild.resultIsBetterOrEqualTo('SUCCESS')}
-          }
+        /* ============================================================
+           4) UNIT TESTS + JACOCO
+        ============================================================ */
+        stage('Unit Tests & Coverage') {
+            steps {
+                sh """
+                    ${MAVEN_HOME}/bin/mvn test \
+                        -Djacoco.skip=false
+                """
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
 
-          steps{
-           echo 'packaging the project '
-           sh './mvnw package -DskipTests'
-           archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-          }
+                    jacoco(
+                        execPattern: '**/target/jacoco.exec',
+                        classPattern: '**/target/classes',
+                        sourcePattern: '**/src/main/java',
+                        exclusionPattern: '**/mapper/**,**/dto/**,**/*Config.java'
+                    )
+                }
+            }
         }
 
-//         stage('building docker image'){
-//          when{
-//            expression{fileExists('Dockerfile')
-//          }
-//
-//          steps{
-//            echo 'building docker image'
-//            sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG}"
-//          }
-//         }
-   }
+        /* ============================================================
+           5) SONARQUBE STATIC ANALYSIS
+        ============================================================ */
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv("${SONAR_SERVER}") {
+                    sh """
+                        ${MAVEN_HOME}/bin/mvn sonar:sonar \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+                            -Dsonar.exclusions=**/dto/**,**/mapper/**,**/*Config.java \
+                            -Dsonar.java.binaries=target/classes
+                    """
+                }
+            }
+        }
 
-   post{
+        /* ============================================================
+           6) SONARQUBE QUALITY GATE
+        ============================================================ */
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    script {
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            error "❌ Quality Gate failed: ${qg.status}"
+                        }
+                        echo "✅ Quality Gate passed"
+                    }
+                }
+            }
+        }
 
-     success{
-       echo 'pipeline was done with success'
-     }
+        /* ============================================================
+           7) PACKAGE JAR
+        ============================================================ */
+        stage('Package') {
+            steps {
+                sh "${MAVEN_HOME}/bin/mvn package -DskipTests"
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+                }
+            }
+        }
 
-     failure{
-       echo 'something went wrong , pipeline fained '
-     }
+        /* ============================================================
+           8) DOCKER BUILD
+        ============================================================ */
+        stage('Docker Build') {
+            steps {
+                sh """
+                    docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
+                    docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
+                """
+            }
+        }
 
-   }
+        /* ============================================================
+           9) DOCKER PUSH
+        ============================================================ */
+        stage('Docker Push') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                }
+            }
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'docker-hub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
+                    sh """
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                        docker push ${DOCKER_IMAGE}:latest
+                        docker logout
+                    """
+                }
+            }
+        }
+    }
 
+    post {
+        success {
+            echo "🎉 BUILD SUCCESS"
+            echo "📦 Docker Image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
+        }
+        failure {
+            echo "❌ BUILD FAILED"
+        }
+    }
 }
