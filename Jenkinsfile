@@ -95,7 +95,6 @@ pipeline {
            QUALITY GATE
         ============================= */
         stage('Quality Gate') {
-        
             steps {
                 timeout(time: 10, unit: 'MINUTES') {
                     script {
