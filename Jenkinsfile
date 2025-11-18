@@ -77,6 +77,7 @@ pipeline {
         /* ============================================================
            5) SONARQUBE STATIC ANALYSIS
         ============================================================ */
+        
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv("${SONAR_SERVER}") {
