@@ -1,101 +1,99 @@
 pipeline {
     agent any
 
-    environment {
-        // Maven
-        MAVEN_HOME = tool 'Maven'
-        MAVEN_OPTS = "-Xmx1024m -Xms512m"
+    tools {
+        maven 'Maven'   
+//         jdk 'JDK21'
+    }
 
-        // SonarQube
+    environment {
         SONAR_SERVER = "SonarQubeLocal"
         SONAR_PROJECT_KEY = "api-logistique"
         SONAR_PROJECT_NAME = "API Logistique"
 
-        // Docker
         DOCKER_IMAGE = "hamzaboumanjel/api-logistique"
         DOCKER_TAG = "${env.BUILD_NUMBER}"
     }
 
     stages {
 
-        /* ============================================================
-           1) CHECKOUT
-        ============================================================ */
         stage('Checkout') {
             steps {
                 checkout scm
                 script {
                     env.GIT_COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    env.GIT_BRANCH = env.BRANCH_NAME ?: "unknown"
                 }
-                echo "📌 Branch: ${env.GIT_BRANCH}, Commit: ${env.GIT_COMMIT_SHORT}"
+                echo "📌 Branch: ${env.BRANCH_NAME}, Commit: ${env.GIT_COMMIT_SHORT}"
             }
         }
 
-        /* ============================================================
-           2) CLEAN
-        ============================================================ */
+        /* =============================
+           CLEAN
+        ============================= */
         stage('Clean') {
             steps {
-                sh "${MAVEN_HOME}/bin/mvn clean"
+                withMaven(maven: 'Maven') {
+                    sh "mvn clean"
+                }
             }
         }
 
-        /* ============================================================
-           3) COMPILE
-        ============================================================ */
+        /* =============================
+           COMPILE
+        ============================= */
         stage('Compile') {
             steps {
-                sh "${MAVEN_HOME}/bin/mvn compile -DskipTests"
+                withMaven(maven: 'Maven') {
+                    sh "mvn compile -DskipTests"
+                }
             }
         }
 
-        /* ============================================================
-           4) UNIT TESTS + JACOCO
-        ============================================================ */
+        /* =============================
+           UNIT TESTS + JACOCO
+        ============================= */
         stage('Unit Tests & Coverage') {
             steps {
-                sh """
-                    ${MAVEN_HOME}/bin/mvn test \
-                        -Djacoco.skip=false
-                """
+                withMaven(maven: 'Maven') {
+                    sh "mvn test -Djacoco.skip=false"
+                }
             }
             post {
                 always {
                     junit '**/target/surefire-reports/*.xml'
-
                     jacoco(
                         execPattern: '**/target/jacoco.exec',
                         classPattern: '**/target/classes',
                         sourcePattern: '**/src/main/java',
-                        exclusionPattern: '**/mapper/**,**/dto/**,**/*Config.java'
+                        exclusionPattern: '**/dto/**,**/mapper/**,**/*Config.java'
                     )
                 }
             }
         }
 
-        /* ============================================================
-           5) SONARQUBE STATIC ANALYSIS
-        ============================================================ */
-        
+        /* =============================
+           SONARQUBE ANALYSIS
+        ============================= */
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv("${SONAR_SERVER}") {
-                    sh """
-                        ${MAVEN_HOME}/bin/mvn sonar:sonar \
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \
-                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-                            -Dsonar.exclusions=**/dto/**,**/mapper/**,**/*Config.java \
-                            -Dsonar.java.binaries=target/classes
-                    """
+                    withMaven(maven: 'Maven') {
+                        sh """
+                           mvn sonar:sonar \
+                               -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                               -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
+                               -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+                               -Dsonar.exclusions=**/dto/**,**/mapper/**,**/*Config.java \
+                               -Dsonar.java.binaries=target/classes
+                        """
+                    }
                 }
             }
         }
 
-        /* ============================================================
-           6) SONARQUBE QUALITY GATE
-        ============================================================ */
+        /* =============================
+           QUALITY GATE
+        ============================= */
         stage('Quality Gate') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
@@ -104,18 +102,19 @@ pipeline {
                         if (qg.status != 'OK') {
                             error "❌ Quality Gate failed: ${qg.status}"
                         }
-                        echo "✅ Quality Gate passed"
                     }
                 }
             }
         }
 
-        /* ============================================================
-           7) PACKAGE JAR
-        ============================================================ */
+        /* =============================
+           PACKAGE
+        ============================= */
         stage('Package') {
             steps {
-                sh "${MAVEN_HOME}/bin/mvn package -DskipTests"
+                withMaven(maven: 'Maven') {
+                    sh "mvn package -DskipTests"
+                }
             }
             post {
                 success {
@@ -124,9 +123,9 @@ pipeline {
             }
         }
 
-        /* ============================================================
-           8) DOCKER BUILD
-        ============================================================ */
+        /* =============================
+           DOCKER BUILD
+        ============================= */
         stage('Docker Build') {
             steps {
                 sh """
@@ -136,15 +135,12 @@ pipeline {
             }
         }
 
-        /* ============================================================
-           9) DOCKER PUSH
-        ============================================================ */
+        /* =============================
+           DOCKER PUSH
+        ============================= */
         stage('Docker Push') {
             when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                }
+                anyOf { branch 'main'; branch 'master' }
             }
             steps {
                 withCredentials([
