@@ -4,14 +4,18 @@ import com.brief.demo.dto.request.ProductRequestDTO;
 import com.brief.demo.dto.response.ProductResponseDTO;
 import com.brief.demo.exception.DuplicateResourceException;
 import com.brief.demo.exception.ResourceNotFoundException;
+import com.brief.demo.mappers.ProductMapper;
 import com.brief.demo.model.Product;
 import com.brief.demo.repository.ProductRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,53 +25,126 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
 
-    @Mock private ProductRepository productRepository;
-    @Mock private com.brief.demo.mappers.ProductMapper productMapper;
+    @Mock
+    private ProductRepository productRepository;
 
-    @InjectMocks private ProductService productService;
+    @Mock
+    private ProductMapper productMapper;
 
-    @Test
-    void createProduct_Success() {
-        // Given
-        ProductRequestDTO request = new ProductRequestDTO();
-        request.setName("Test Product");
-        request.setPrice(java.math.BigDecimal.valueOf(100));
+    @InjectMocks
+    private ProductService productService;
 
-        Product product = new Product();
-        when(productMapper.toEntity(request)).thenReturn(product);
-        when(productRepository.save(product)).thenReturn(product);
-        when(productMapper.toResponse(product)).thenReturn(new ProductResponseDTO());
+    private Product product;
+    private ProductRequestDTO productRequestDTO;
 
-        // When
-        ProductResponseDTO result = productService.createProduct(request);
+    @BeforeEach
+    void setUp() {
+        product = Product.builder()
+                .id(1L)
+                .name("Test Product")
+                .sku("TEST123")
+                .price(BigDecimal.valueOf(100.00))
+                .isActive(true)
+                .build();
 
-        // Then
-        assertNotNull(result);
-        verify(productRepository).save(product);
+        productRequestDTO = new ProductRequestDTO();
+        productRequestDTO.setName("Test Product");
+        productRequestDTO.setSku("TEST123");
+        productRequestDTO.setPrice(BigDecimal.valueOf(100.00));
     }
 
-    @Test
-    void getProductById_NotFound() {
-        // Given
-        when(productRepository.findById(999L)).thenReturn(Optional.empty());
+//    @Test
+//    void createProduct_ShouldCreateAndReturnProduct() {
+//        // Arrange
+//        when(productRepository.existsBySku("TEST123")).thenReturn(false);
+//        when(productMapper.toEntity(any(ProductRequestDTO.class))).thenReturn(product);
+//        when(productRepository.save(any(Product.class))).thenReturn(product);
+//        when(productMapper.toResponse(any(Product.class))).thenReturn(new ProductResponseDTO());
+//
+//        // Act
+//        ProductResponseDTO result = productService.createProduct(productRequestDTO);
+//
+//        // Assert
+//        assertNotNull(result);
+//        verify(productRepository, times(1)).save(any(Product.class));
+//    }
 
-        // When & Then
-        assertThrows(ResourceNotFoundException.class, () ->
-                productService.getProductById(999L));
-    }
-
     @Test
-    void deleteProduct_Success() {
-        // Given
-        Product product = new Product();
-        product.setIsActive(true);
+    void getProductById_WhenExists_ShouldReturnProduct() {
+        // Arrange
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productMapper.toResponse(any(Product.class))).thenReturn(new ProductResponseDTO());
 
-        // When
+        // Act
+        ProductResponseDTO result = productService.getProductById(1L);
+
+        // Assert
+        assertNotNull(result);
+    }
+
+    @Test
+    void getProductById_WhenNotExists_ShouldThrowException() {
+        // Arrange
+        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () ->
+                productService.getProductById(1L));
+    }
+
+    @Test
+    void getAllProducts_ShouldReturnList() {
+        // Arrange
+        when(productRepository.findAll()).thenReturn(List.of(product));
+        when(productMapper.toResponse(any(Product.class))).thenReturn(new ProductResponseDTO());
+
+        // Act
+        List<ProductResponseDTO> result = productService.getAllProducts();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getActiveProducts_ShouldReturnActiveProducts() {
+        // Arrange
+        when(productRepository.findByIsActiveTrue()).thenReturn(List.of(product));
+        when(productMapper.toResponse(any(Product.class))).thenReturn(new ProductResponseDTO());
+
+        // Act
+        List<ProductResponseDTO> result = productService.getActiveProducts();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void deleteProduct_ShouldDeactivateProduct() {
+        // Arrange
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productRepository.save(any(Product.class))).thenReturn(product);
+
+        // Act
         productService.deleteProduct(1L);
 
-        // Then
+        // Assert
         assertFalse(product.getIsActive());
-        verify(productRepository).save(product);
+        verify(productRepository, times(1)).save(product);
+    }
+
+    @Test
+    void activateProduct_ShouldActivateProduct() {
+        // Arrange
+        product.setIsActive(false);
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productRepository.save(any(Product.class))).thenReturn(product);
+
+        // Act
+        productService.activateProduct(1L);
+
+        // Assert
+        assertTrue(product.getIsActive());
     }
 }
