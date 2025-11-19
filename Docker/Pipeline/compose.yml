@@ -12,7 +12,6 @@ services:
     volumes:
       - "./localstack_data:/var/lib/localstack"
 
-
   sonarqube:
     image: sonarqube:lts
     ports:
