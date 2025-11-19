@@ -128,7 +128,7 @@ pipeline {
         stage('Docker Build') {
             steps {
                 sh """
-                    docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
+                    docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f Docker/Pipeline/Dockerfile .
                     docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
                 """
             }
@@ -137,28 +137,28 @@ pipeline {
         /* =============================
            DOCKER PUSH
         ============================= */
-        stage('Docker Push') {
-            when {
-                anyOf { branch 'main'; branch 'master' }
-            }
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'docker-hub-creds',
-                        usernameVariable: 'DOCKER_USER',
-                        passwordVariable: 'DOCKER_PASS'
-                    )
-                ]) {
-                    sh """
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                        docker push ${DOCKER_IMAGE}:latest
-                        docker logout
-                    """
-                }
-            }
-        }
-    }
+//         stage('Docker Push') {
+//             when {
+//                 anyOf { branch 'main'; branch 'master' }
+//             }
+//             steps {
+//                 withCredentials([
+//                     usernamePassword(
+//                         credentialsId: 'docker-hub-creds',
+//                         usernameVariable: 'DOCKER_USER',
+//                         passwordVariable: 'DOCKER_PASS'
+//                     )
+//                 ]) {
+//                     sh """
+//                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+//                         docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+//                         docker push ${DOCKER_IMAGE}:latest
+//                         docker logout
+//                     """
+//                 }
+//             }
+//         }
+//     }
 
 
     post {
