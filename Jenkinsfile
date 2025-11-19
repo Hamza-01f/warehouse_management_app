@@ -160,10 +160,11 @@ pipeline {
         }
     }
 
+
     post {
         success {
-            echo "🎉 BUILD SUCCESS"
-            echo "📦 Docker Image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
+            echo " BUILD SUCCESS"
+            echo " Docker Image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
         }
         failure {
             echo "❌ BUILD FAILED"
