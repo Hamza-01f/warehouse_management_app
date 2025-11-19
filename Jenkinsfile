@@ -90,22 +90,6 @@ pipeline {
                 }
             }
         }
-
-        /* =============================
-           QUALITY GATE
-        ============================= */
-//         stage('Quality Gate') {
-//             steps {
-//                 timeout(time: 10, unit: 'MINUTES') {
-//                     script {
-//                         def qg = waitForQualityGate()
-//                         if (qg.status != 'OK') {
-//                             error "❌ Quality Gate failed: ${qg.status}"
-//                         }
-//                     }
-//                 }
-//             }
-//         }
         /* =============================
            PACKAGE
         ============================= */
@@ -134,31 +118,31 @@ pipeline {
             }
         }
 
-        /* =============================
-           DOCKER PUSH
-        ============================= */
-//         stage('Docker Push') {
-//             when {
-//                 anyOf { branch 'main'; branch 'master' }
-//             }
-//             steps {
-//                 withCredentials([
-//                     usernamePassword(
-//                         credentialsId: 'docker-hub-creds',
-//                         usernameVariable: 'DOCKER_USER',
-//                         passwordVariable: 'DOCKER_PASS'
-//                     )
-//                 ]) {
-//                     sh """
-//                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-//                         docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-//                         docker push ${DOCKER_IMAGE}:latest
-//                         docker logout
-//                     """
-//                 }
-//             }
-//         }
-//     }
+                /* =============================
+                   DOCKER PUSH
+                ============================= */
+        //         stage('Docker Push') {
+        //             when {
+        //                 anyOf { branch 'main'; branch 'master' }
+        //             }
+        //             steps {
+        //                 withCredentials([
+        //                     usernamePassword(
+        //                         credentialsId: 'docker-hub-creds',
+        //                         usernameVariable: 'DOCKER_USER',
+        //                         passwordVariable: 'DOCKER_PASS'
+        //                     )
+        //                 ]) {
+        //                     sh """
+        //                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+        //                         docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+        //                         docker push ${DOCKER_IMAGE}:latest
+        //                         docker logout
+        //                     """
+        //                 }
+        //             }
+        //         }
+   }
 
 
     post {
