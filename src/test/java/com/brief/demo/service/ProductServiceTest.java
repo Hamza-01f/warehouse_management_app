@@ -37,6 +37,7 @@ class ProductServiceTest {
     private Product product;
     private ProductRequestDTO productRequestDTO;
 
+    // running before each method calling
     @BeforeEach
     void setUp() {
         product = Product.builder()
@@ -53,22 +54,7 @@ class ProductServiceTest {
         productRequestDTO.setPrice(BigDecimal.valueOf(100.00));
     }
 
-//    @Test
-//    void createProduct_ShouldCreateAndReturnProduct() {
-//        // Arrange
-//        when(productRepository.existsBySku("TEST123")).thenReturn(false);
-//        when(productMapper.toEntity(any(ProductRequestDTO.class))).thenReturn(product);
-//        when(productRepository.save(any(Product.class))).thenReturn(product);
-//        when(productMapper.toResponse(any(Product.class))).thenReturn(new ProductResponseDTO());
-//
-//        // Act
-//        ProductResponseDTO result = productService.createProduct(productRequestDTO);
-//
-//        // Assert
-//        assertNotNull(result);
-//        verify(productRepository, times(1)).save(any(Product.class));
-//    }
-
+    //AAA pattern
     @Test
     void getProductById_WhenExists_ShouldReturnProduct() {
         // Arrange

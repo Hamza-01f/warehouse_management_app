@@ -3,7 +3,6 @@ pipeline {
 
     tools {
         maven 'Maven'
-//         jdk 'JDK21'
     }
 
     environment {
@@ -23,7 +22,7 @@ pipeline {
                 script {
                     env.GIT_COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
                 }
-                echo "📌 Branch: ${env.BRANCH_NAME}, Commit: ${env.GIT_COMMIT_SHORT}"
+                echo " Branch: ${env.BRANCH_NAME}, Commit: ${env.GIT_COMMIT_SHORT}"
             }
         }
 

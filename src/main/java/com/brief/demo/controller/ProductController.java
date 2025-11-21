@@ -6,8 +6,10 @@ import com.brief.demo.dto.request.ProductRequestUpdateDTO;
 import com.brief.demo.dto.response.ApiResponseDTO;
 import com.brief.demo.dto.response.ProductResponseDTO;
 import com.brief.demo.service.ProductService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,8 +21,11 @@ public class ProductController {
 
     private final ProductService productService;
 
+//    @GetMapping("/token")
+//    public CsrfToken getToken(HttpServletRequest httpServletRequest){
+//        return (CsrfToken) httpServletRequest.getAttribute("_csrf");
+//    }
     @PostMapping
-//    @RequiresAdmin
     public ResponseEntity<ProductResponseDTO> createProduct( @RequestBody ProductRequestDTO request) {
         ProductResponseDTO response = productService.createProduct(request);
         return ResponseEntity.ok(response);
