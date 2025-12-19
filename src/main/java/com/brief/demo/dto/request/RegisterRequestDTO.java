@@ -1,6 +1,6 @@
 package com.brief.demo.dto.request;
 
-import com.brief.demo.enums.Role;
+import com.brief.demo.model.Roles;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,5 +26,5 @@ public class RegisterRequestDTO {
     private String password;
 
     @NotNull(message = "Role is required")
-    private Role role;
+    private Long role;
 }

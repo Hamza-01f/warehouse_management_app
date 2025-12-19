@@ -7,6 +7,7 @@ import com.brief.demo.exception.ResourceNotFoundException;
 import com.brief.demo.mappers.SupplierMapper;
 import com.brief.demo.model.Supplier;
 import com.brief.demo.repository.SupplierRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SupplierService {
 
     private final SupplierRepository supplierRepository;

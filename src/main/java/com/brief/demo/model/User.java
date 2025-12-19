@@ -1,10 +1,11 @@
 package com.brief.demo.model;
 
-import com.brief.demo.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -33,9 +34,18 @@ public class User {
     @Builder.Default
     private Boolean isActive = true;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
+
+    @ManyToOne
+    @JoinColumn(name = "user_role_id" , nullable = false)
+    private Roles userRole;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_permissions",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private Set<Permissions> permissions = new HashSet<>();
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

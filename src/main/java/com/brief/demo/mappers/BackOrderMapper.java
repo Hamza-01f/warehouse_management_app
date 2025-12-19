@@ -15,8 +15,6 @@ public class BackOrderMapper {
         response.setFulfilledAt(backOrder.getFulfilledAt());
         response.setStatus(backOrder.getStatus());
 
-        // Map sales order line and product if needed
-
         return response;
     }
 }

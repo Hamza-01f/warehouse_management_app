@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class BackOrderService {
 
     private final BackorderRepository backorderRepository;

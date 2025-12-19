@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SalesOrderService {
 
     private final SalesOrderRepository salesOrderRepository;
