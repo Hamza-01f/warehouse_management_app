@@ -20,7 +20,6 @@ public class SupplierController {
     private final SupplierService supplierService;
 
     @PostMapping
-    @RequiresAdmin
     public ResponseEntity<SupplierResponseDTO> createSupplier(@RequestBody SupplierRequestDTO request) {
         SupplierResponseDTO response = supplierService.createSupplier(request);
         return ResponseEntity.ok(response);
@@ -45,7 +44,6 @@ public class SupplierController {
     }
 
     @PutMapping("/{id}")
-    @RequiresAdmin
     public ResponseEntity<SupplierResponseDTO> updateSupplier(
             @PathVariable Long id,
             @RequestBody SupplierRequestDTO request) {
@@ -54,14 +52,12 @@ public class SupplierController {
     }
 
     @DeleteMapping("/{id}")
-    @RequiresAdmin
     public ResponseEntity<ApiResponseDTO> deleteSupplier(@PathVariable Long id) {
         supplierService.deleteSupplier(id);
         return ResponseEntity.ok(new ApiResponseDTO("Supplier deleted successfully", true));
     }
 
     @PatchMapping("/{id}/activate")
-    @RequiresAdmin
     public ResponseEntity<ApiResponseDTO> activateSupplier(@PathVariable Long id) {
         supplierService.activateSupplier(id);
         return ResponseEntity.ok(new ApiResponseDTO("Supplier activated successfully", true));

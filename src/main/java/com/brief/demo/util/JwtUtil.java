@@ -28,15 +28,10 @@ public class JwtUtil {
 
     private static final String SECRET_KEY = "my-super-secret-key-my-super-secret-key";
     private static final long ACCESS_TOKEN_EXPIRATION_TIME = 15 * 60 * 1000;
-    private  static  final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000;
     private  final RefreshTokenService refreshTokenService;
 
-    private SecretKey getSigningKey(){
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
-    }
 
     public String generateAccessToken(UserDetails userDetails){
-
         Map<String , Object> claims = new HashMap<>();
         claims.put("roles" , userDetails.getAuthorities()
                 .stream()
@@ -52,6 +47,7 @@ public class JwtUtil {
     }
 
     public RefreshToken generateRefreshToken(UserDetails userDetails){
+
         String token = UUID.randomUUID().toString();
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(token)

@@ -40,15 +40,20 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<ApiTokenResponse<TokenResponseDTO>> refreshToken(@RequestBody RefreshTokenRequestDTO request) {
+
         String refreshToken = request.getRefreshToken();
 
         RefreshToken token = refreshTokenService.getByToken(refreshToken);
+
+
+        if (token == null) {
+            throw new RuntimeException("Refresh token not found");
+        }
 
         if (token.isRevoked() || token.getExpiryDate().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Refresh token expired or revoked");
         }
 
-        // Rotate refresh token (optional but recommended)
         refreshTokenService.revokeToken(request.getRefreshToken());
 
         UserDetails userDetails = userService.loadUserByUsername(token.getUser().getEmail());
@@ -67,7 +72,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ApiTokenResponse<TokenResponseDTO> login(@RequestBody LoginRequestDTO request) {
+    public ResponseEntity<ApiTokenResponse<TokenResponseDTO>> login(@RequestBody LoginRequestDTO request) {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail() , request.getPassword())
         );
@@ -76,14 +81,16 @@ public class AuthController {
         String token = jwtUtil.generateAccessToken(userDetails);
         RefreshToken refreshToken = jwtUtil.generateRefreshToken(userDetails);
 
-        TokenResponseDTO tokenResponseDTO = TokenResponseDTO
+        TokenResponseDTO tokenResponse = TokenResponseDTO
                 .builder()
                 .accessToken(token)
                 .refreshToken(refreshToken.getToken())
                 .expiresIn( 15 * 60 )
                 .tokenType("Bearer")
                 .build();
-       return ApiTokenResponse.success(tokenResponseDTO , " your token is being retrieved with success : ");
+
+        ApiTokenResponse<TokenResponseDTO> response = ApiTokenResponse.success(tokenResponse , " you token is being retrieved with success : ");
+       return ResponseEntity.ok(response);
     }
 
     @PostMapping("/logout")

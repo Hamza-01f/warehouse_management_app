@@ -22,15 +22,21 @@ public class RefreshToken {
     @Column(nullable = false , unique = true)
     private String token;
 
-   @ManyToMany(fetch =  FetchType.LAZY)
+   @ManyToOne(fetch =  FetchType.LAZY)
    @JoinColumn(name = "user_id" , nullable = false)
    private User user;
 
     @Column(nullable = false)
     private LocalDateTime expiryDate;
 
+    @Column(nullable = false)
     public boolean revoked;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist(){
+        this.createdAt = LocalDateTime.now();
+    }
 }

@@ -19,7 +19,7 @@ public class RefreshTokenService {
     private final UserRepository userRepository;
 
     public RefreshToken saveRefreshToken(RefreshToken refreshToken, String  username){
-        User user = userRepository.findByFirstName(username);
+        User user = userRepository.findByEmail(username).orElseThrow(() -> new RuntimeException("user not found : "));
         refreshToken.setUser(user);
         return jwtTokenRepository.save(refreshToken);
     }
@@ -31,5 +31,6 @@ public class RefreshTokenService {
      public void revokeToken(String token){
         RefreshToken refreshToken = jwtTokenRepository.findByToken(token);
         refreshToken.setRevoked(true);
+        jwtTokenRepository.save(refreshToken);
      }
 }
