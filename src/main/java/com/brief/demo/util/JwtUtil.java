@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 @Component
 @RequiredArgsConstructor
@@ -33,9 +34,20 @@ public class JwtUtil {
 
     public String generateAccessToken(UserDetails userDetails){
         Map<String , Object> claims = new HashMap<>();
+
+
+        //Roles
         claims.put("roles" , userDetails.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
+                .filter(auth -> auth.startsWith("ROLE_"))
+                .toList());
+
+        //Permissions
+        claims.put("permissions" , userDetails.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(auth -> !auth.startsWith("ROLE_"))
                 .toList());
 
         return Jwts.builder().setClaims(claims)

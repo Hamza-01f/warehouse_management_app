@@ -9,6 +9,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -17,7 +19,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import java.nio.charset.StandardCharsets;
-
+import java.util.ArrayList;
+import java.util.List;
 
 
 import javax.crypto.SecretKey;
@@ -51,9 +54,9 @@ public class SecurityConfig {
                                      .anyRequest().authenticated())
 //                           .formLogin(Customizer.withDefaults())
 //                             .httpBasic(Customizer.withDefaults())
-                             .oauth2ResourceServer(oauth -> oauth
-                                     .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                             )
+                                 .oauth2ResourceServer(oauth -> oauth
+                                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                                 )
                              .sessionManagement(session -> session
                                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                              .build();
@@ -70,13 +73,27 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        grantedAuthoritiesConverter.setAuthoritiesClaimName("roles");
-        grantedAuthoritiesConverter.setAuthorityPrefix("");
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
-        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
-        jwtConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
-        return jwtConverter;
+            List<String> roles = jwt.getClaimAsStringList("roles");
+            if(roles != null){
+                roles.forEach(role ->
+                        grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + role))
+                );
+            }
+
+            List<String> permissions = jwt.getClaimAsStringList("permissions");
+            if(permissions != null){
+                permissions.forEach(permission ->
+                        grantedAuthorities.add(new SimpleGrantedAuthority(permission))
+                );
+            }
+
+            return  grantedAuthorities;
+        });
+        return converter;
     }
 
 

@@ -21,10 +21,6 @@ public class ProductController {
 
     private final ProductService productService;
 
-//    @GetMapping("/token")
-//    public CsrfToken getToken(HttpServletRequest httpServletRequest){
-//        return (CsrfToken) httpServletRequest.getAttribute("_csrf");
-//    }
     @PostMapping
     public ResponseEntity<ProductResponseDTO> createProduct( @RequestBody ProductRequestDTO request) {
         ProductResponseDTO response = productService.createProduct(request);
@@ -50,7 +46,6 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-//    @RequiresAdmin
     public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable Long id,
             @RequestBody ProductRequestUpdateDTO request) {
@@ -59,14 +54,12 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-//    @RequiresAdmin
     public ResponseEntity<ApiResponseDTO> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.ok(new ApiResponseDTO("Product deleted successfully", true));
     }
 
     @PatchMapping("/{id}/activate")
-//    @RequiresAdmin
     public ResponseEntity<ApiResponseDTO> activateProduct(@PathVariable Long id) {
         productService.activateProduct(id);
         return ResponseEntity.ok(new ApiResponseDTO("Product activated successfully", true));
