@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -34,6 +36,8 @@ public class User {
     @Builder.Default
     private Boolean isActive = true;
 
+    @OneToMany(mappedBy = "user" , fetch = FetchType.LAZY)
+    private List<RefreshToken> refreshTokens = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "user_role_id" , nullable = false)

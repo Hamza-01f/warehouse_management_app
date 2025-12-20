@@ -14,23 +14,33 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtUtil {
-    private static final String SECRET_KEY = "my-super-secret-key-my-super-secret-key";
 
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60;
+    private static final String SECRET_KEY = "my-super-secret-key-my-super-secret-key";
+    private static final long ACCESS_TOKEN_EXPIRATION_TIME = 15 * 60 * 1000;
+    private  static  final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000;
 
     private SecretKey getSigningKey(){
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(UserDetails userDetails){
+    public String generateAccessToken(UserDetails userDetails){
+
+        Map<String , Object> claims = new HashMap<>();
+        claims.put("roles" , userDetails.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList());
+        
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .claim("roles" , userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION_TIME))
                 .signWith(getSigningKey() , SignatureAlgorithm.HS256)
                 .compact();
     }

@@ -27,7 +27,6 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDTO> register(@RequestBody RegisterRequestDTO request) {
-        System.out.println(request.getRole() + "controller");
         AuthResponseDTO response = userService.register(request);
         return ResponseEntity.ok(response);
     }
@@ -39,8 +38,8 @@ public class AuthController {
         );
 
         UserDetails userDetails = (UserDetails) auth.getPrincipal();
-        String token = jwtUtil.generateToken(userDetails);
+        String token = jwtUtil.generateAccessToken(userDetails);
        return ResponseEntity.ok(ApiTokenResponse.success(token , " your token is being retrieved with success : ")).getBody()   ;
     }
-    
+
 }

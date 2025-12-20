@@ -22,6 +22,9 @@ public class Permissions {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "permission_name" , nullable = false)
+    private String name;
+
     @ManyToMany(mappedBy = "permissions")
     private Set<User> users = new HashSet<>();
 }
