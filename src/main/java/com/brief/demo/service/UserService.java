@@ -1,25 +1,35 @@
 package com.brief.demo.service;
 
 
-import com.brief.demo.dto.request.LoginRequestDTO;
 import com.brief.demo.dto.request.RegisterRequestDTO;
 import com.brief.demo.dto.response.AuthResponseDTO;
 import com.brief.demo.exception.DuplicateResourceException;
 import com.brief.demo.exception.ResourceNotFoundException;
-import com.brief.demo.exception.UnauthorizedException;
-import com.brief.demo.mappers.UserMapper;
+import com.brief.demo.mappers.UsersMapper;
+import com.brief.demo.model.Roles;
 import com.brief.demo.model.User;
+import com.brief.demo.model.UserPrincipal;
 import com.brief.demo.repository.UserRepository;
+import com.brief.demo.repository.UserRoleRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+@Transactional
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
+    private final UsersMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final UserRoleRepository userRoleRepository;
 
     public AuthResponseDTO register(RegisterRequestDTO request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -27,37 +37,34 @@ public class UserService {
         }
 
         User user = userMapper.toEntity(request);
-        user.setPassword(hashPassword(request.getPassword()));
+
+        Roles role = userRoleRepository.findById(request.getRole())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Role not found with id: " + request.getRole()
+                ));
+
+        user.setUserRole(role);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         User savedUser = userRepository.save(user);
-        return userMapper.toAuthResponse(savedUser, "User registered successfully");
-    }
-
-    public AuthResponseDTO login(LoginRequestDTO request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        if (!checkPassword(request.getPassword(), user.getPassword())) {
-            throw new UnauthorizedException("Invalid credentials");
-        }
-
-        if (!user.getIsActive()) {
-            throw new UnauthorizedException("Account is deactivated");
-        }
-
-        return userMapper.toAuthResponse(user, "Login successful");
-    }
-
-    private String hashPassword(String plainPassword) {
-        return BCrypt.hashpw(plainPassword, BCrypt.gensalt());
-    }
-
-    private boolean checkPassword(String plainPassword, String hashedPassword) {
-        return BCrypt.checkpw(plainPassword, hashedPassword);
+        return userMapper.toAuthResponseDTO(savedUser);
     }
 
     public User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws ResourceNotFoundException {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("User not found with email: " + email)
+                );
+
+        return new UserPrincipal(user);
+
+
     }
 }

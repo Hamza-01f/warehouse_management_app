@@ -2,6 +2,7 @@ package com.brief.demo.controller;
 
 //import com.brief.demo.aop.RequiresAdmin;
 //import com.brief.demo.aop.RequiresWarehouseManager;
+import com.brief.demo.aop.RequiresAdmin;
 import com.brief.demo.dto.request.WarehouseRequestDTO;
 import com.brief.demo.dto.response.ApiResponseDTO;
 import com.brief.demo.dto.response.WarehouseResponseDTO;
@@ -20,7 +21,6 @@ public class WarehouseController {
     private final WarehouseService warehouseService;
 
     @PostMapping
-//    @RequiresAdmin
     public ResponseEntity<WarehouseResponseDTO> createWarehouse(@RequestBody WarehouseRequestDTO request) {
         WarehouseResponseDTO response = warehouseService.createWarehouse(request);
         return ResponseEntity.ok(response);
@@ -45,7 +45,6 @@ public class WarehouseController {
     }
 
     @PutMapping("/{id}")
-//    @RequiresAdmin
     public ResponseEntity<WarehouseResponseDTO> updateWarehouse(
             @PathVariable Long id,
             @RequestBody WarehouseRequestDTO request) {
@@ -54,14 +53,12 @@ public class WarehouseController {
     }
 
     @DeleteMapping("/{id}")
-//    @RequiresAdmin
     public ResponseEntity<ApiResponseDTO> deleteWarehouse(@PathVariable Long id) {
         warehouseService.deleteWarehouse(id);
         return ResponseEntity.ok(new ApiResponseDTO("Warehouse deleted successfully", true));
     }
 
     @PatchMapping("/{id}/activate")
-//    @RequiresAdmin
     public ResponseEntity<ApiResponseDTO> activateWarehouse(@PathVariable Long id) {
         warehouseService.activateWarehouse(id);
         return ResponseEntity.ok(new ApiResponseDTO("Warehouse activated successfully", true));

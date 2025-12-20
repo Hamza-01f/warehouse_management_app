@@ -22,17 +22,25 @@ public class SalesOrderLine {
     @JoinColumn(name = "sales_order_id", nullable = false)
     private SalesOrder salesOrder;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @Column(nullable = false)
     private Integer quantity;
 
+    @Column(nullable = false)
     private BigDecimal price;
 
     @Column(name = "quantity_reserved")
-    private Integer quantityReserved;
+    @Builder.Default
+    private Integer quantityReserved = 0;
 
-    @Column(name = "quantity_ordered")
-    private Integer quantityOrdered;
+    @Column(name = "quantity_fulfilled")
+    @Builder.Default
+    private Integer quantityFulfilled = 0;
+
+    @Column(name = "backorder_quantity")
+    @Builder.Default
+    private Integer backorderQuantity = 0;
 }

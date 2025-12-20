@@ -20,14 +20,12 @@ public class ShipmentController {
     private final ShipmentService shipmentService;
 
     @PostMapping
-//    @RequiresWarehouseManager
     public ResponseEntity<ShipmentResponseDTO> createShipment(@RequestBody ShipmentRequestDTO request) {
         ShipmentResponseDTO response = shipmentService.createShipment(request);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
-//    @RequiresWarehouseManager
     public ResponseEntity<List<ShipmentResponseDTO>> getAllShipments() {
         List<ShipmentResponseDTO> shipments = shipmentService.getShipmentsByStatus(null);
         return ResponseEntity.ok(shipments);
@@ -52,7 +50,6 @@ public class ShipmentController {
     }
 
     @PatchMapping("/{id}/status")
-//    @RequiresWarehouseManager
     public ResponseEntity<ShipmentResponseDTO> updateShipmentStatus(
             @PathVariable Long id,
             @RequestParam ShipmentStatus status) {

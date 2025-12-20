@@ -8,5 +8,6 @@ public class SalesOrderLineResponseDTO {
     private ProductResponseDTO product;
     private Integer quantity;
     private Integer quantityReserved;
-    private Integer quantityOrdered;
+    private Integer quantityFulfilled; // ADD THIS
+    private Integer backorderQuantity; // ADD THIS
 }

@@ -1,6 +1,7 @@
 package com.brief.demo.controller;
 
 //import com.brief.demo.aop.RequiresWarehouseManager;
+import com.brief.demo.aop.RequiresWarehouseManager;
 import com.brief.demo.dto.request.InventoryRequestDTO;
 import com.brief.demo.dto.request.InventoryUpdateDTO;
 import com.brief.demo.dto.request.InventoryMovementRequestDTO;
@@ -22,7 +23,7 @@ public class InventoryController {
     private final InventoryService inventoryService;
 
     @PostMapping
-//    @RequiresWarehouseManager
+    @RequiresWarehouseManager
     public ResponseEntity<InventoryResponseDTO> createInventory(@RequestBody InventoryRequestDTO request) {
         InventoryResponseDTO response = inventoryService.createInventory(request);
         return ResponseEntity.ok(response);
@@ -53,7 +54,7 @@ public class InventoryController {
     }
 
     @PutMapping("/{id}")
-//    @RequiresWarehouseManager
+    @RequiresWarehouseManager
     public ResponseEntity<InventoryResponseDTO> updateInventory(
             @PathVariable Long id,
             @RequestBody InventoryUpdateDTO request) {
@@ -62,7 +63,7 @@ public class InventoryController {
     }
 
     @PostMapping("/movements")
-//    @RequiresWarehouseManager
+    @RequiresWarehouseManager
     public ResponseEntity<InventoryMovementResponseDTO> createMovement(@RequestBody InventoryMovementRequestDTO request) {
         InventoryMovementResponseDTO movement = inventoryService.createMovement(request);
         return ResponseEntity.ok(movement);

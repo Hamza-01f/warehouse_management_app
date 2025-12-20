@@ -13,9 +13,15 @@ public class SalesOrderResponseDTO {
     private WarehouseResponseDTO warehouse;
     private OrderStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime reservedAt;
+    private LocalDateTime shippedAt;
+    private LocalDateTime deliveredAt;
     private String country;
     private String city;
     private String street;
     private String zipCode;
     private List<SalesOrderLineResponseDTO> orderLines;
+    private ShipmentResponseDTO shipment;
+//    private Boolean afterCutOff;
+//    private String message;
 }

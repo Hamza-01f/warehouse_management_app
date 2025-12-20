@@ -22,4 +22,7 @@ public class Warehouse {
 
     @Builder.Default
     private Boolean isActive = true;
+
+//    @Column(nullable = false)
+//    private Integer priority = 1;
 }

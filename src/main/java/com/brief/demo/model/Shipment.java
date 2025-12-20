@@ -4,6 +4,8 @@ import com.brief.demo.enums.ShipmentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "shipments")
 @Getter
@@ -25,7 +27,20 @@ public class Shipment {
 
     private String trackingNumber;
 
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ShipmentStatus status;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (status == null) {
+            status = ShipmentStatus.PLANNED;
+        }
+    }
 }

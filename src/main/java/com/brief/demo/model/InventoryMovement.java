@@ -26,8 +26,17 @@ public class    InventoryMovement {
     @Column(nullable = false)
     private MovementType type;
 
+    @Column(nullable = false)
     private Integer quantity;
 
     @Builder.Default
     private LocalDateTime occurredAt = LocalDateTime.now();
+
+    @PrePersist
+    protected void onCreate() {
+        if (occurredAt == null) {
+            occurredAt = LocalDateTime.now();
+        }
+    }
+
 }
