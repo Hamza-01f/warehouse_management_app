@@ -32,6 +32,7 @@ public class UserService implements UserDetailsService {
     private final UserRoleRepository userRoleRepository;
 
     public AuthResponseDTO register(RegisterRequestDTO request) {
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email already exists");
         }
