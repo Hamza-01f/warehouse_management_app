@@ -1,6 +1,5 @@
 package com.brief.demo.controller;
 
-//import com.brief.demo.aop.RequiresAdmin;
 import com.brief.demo.aop.RequiresAdmin;
 import com.brief.demo.dto.request.SupplierRequestDTO;
 import com.brief.demo.dto.response.ApiResponseDTO;
@@ -8,6 +7,7 @@ import com.brief.demo.dto.response.SupplierResponseDTO;
 import com.brief.demo.service.SupplierService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,30 +20,35 @@ public class SupplierController {
     private final SupplierService supplierService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('SUPPLIER_CREATE')")
     public ResponseEntity<SupplierResponseDTO> createSupplier(@RequestBody SupplierRequestDTO request) {
         SupplierResponseDTO response = supplierService.createSupplier(request);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('SUPPLIER_READ')")
     public ResponseEntity<List<SupplierResponseDTO>> getAllSuppliers() {
         List<SupplierResponseDTO> suppliers = supplierService.getAllSuppliers();
         return ResponseEntity.ok(suppliers);
     }
 
     @GetMapping("/active")
+    @PreAuthorize("hasAuthority('SUPPLIER_READ')")
     public ResponseEntity<List<SupplierResponseDTO>> getActiveSuppliers() {
         List<SupplierResponseDTO> suppliers = supplierService.getActiveSuppliers();
         return ResponseEntity.ok(suppliers);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('SUPPLIER_READ')")
     public ResponseEntity<SupplierResponseDTO> getSupplierById(@PathVariable Long id) {
         SupplierResponseDTO supplier = supplierService.getSupplierById(id);
         return ResponseEntity.ok(supplier);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('SUPPLIER_UPDATE')")
     public ResponseEntity<SupplierResponseDTO> updateSupplier(
             @PathVariable Long id,
             @RequestBody SupplierRequestDTO request) {
@@ -52,12 +57,14 @@ public class SupplierController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('SUPPLIER_DELETE')")
     public ResponseEntity<ApiResponseDTO> deleteSupplier(@PathVariable Long id) {
         supplierService.deleteSupplier(id);
         return ResponseEntity.ok(new ApiResponseDTO("Supplier deleted successfully", true));
     }
 
     @PatchMapping("/{id}/activate")
+    @PreAuthorize("hasAuthority('SUPPLIER_UPDATE')")
     public ResponseEntity<ApiResponseDTO> activateSupplier(@PathVariable Long id) {
         supplierService.activateSupplier(id);
         return ResponseEntity.ok(new ApiResponseDTO("Supplier activated successfully", true));
