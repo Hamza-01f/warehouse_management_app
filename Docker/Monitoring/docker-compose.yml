@@ -1,7 +1,7 @@
 services:
-  Elasticsearch:
+  elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.22
-    container_name: Elasticsearch
+    container_name: elasticsearch
     environment:
       - node.name=Elasticsearch
       - cluster.name=docker-cluster
@@ -18,9 +18,9 @@ services:
       - "9200:9200"
     networks:
       - my-network
-  Kibana:
+  kibana:
     image: docker.elastic.co/kibana/kibana:7.17.22
-    container_name: Kibana
+    container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     ports:
@@ -31,13 +31,13 @@ services:
     image: docker.elastic.co/logstash/logstash:7.17.22
     container_name: logstash
     volumes:
-      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     ports:
       - "5000:5000"
     networks:
       - my-network
     depends_on:
-      - Elasticsearch
+      - elasticsearch
 
 volumes:
   es_data:

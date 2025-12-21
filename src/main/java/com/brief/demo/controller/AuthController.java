@@ -12,6 +12,7 @@ import com.brief.demo.service.RefreshTokenService;
 import com.brief.demo.service.UserService;
 import com.brief.demo.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
     private final UserService userService;
@@ -38,6 +40,7 @@ public class AuthController {
     @PreAuthorize("hasAuthority('USER_CREATE')")
     public ResponseEntity<AuthResponseDTO> register(@RequestBody RegisterRequestDTO request) {
         AuthResponseDTO response = userService.register(request);
+        log.info("user was registered with success");
         return ResponseEntity.ok(response);
     }
 
@@ -50,10 +53,12 @@ public class AuthController {
 
 
         if (token == null) {
+            log.error(" the token was not found : {}", token);
             throw new RuntimeException("Refresh token not found");
         }
 
         if (token.isRevoked() || token.getExpiryDate().isBefore(LocalDateTime.now())) {
+            log.error(" the token either revoked or expired : {}",token);
             throw new RuntimeException("Refresh token expired or revoked");
         }
 
@@ -92,6 +97,7 @@ public class AuthController {
                 .tokenType("Bearer")
                 .build();
 
+        log.info(" the user was logged in with success : {}", auth.getPrincipal());
         ApiTokenResponse<TokenResponseDTO> response = ApiTokenResponse.success(tokenResponse , " you token is being retrieved with success : ");
        return ResponseEntity.ok(response);
     }
@@ -99,16 +105,17 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody RefreshTokenRequestDTO request) {
         refreshTokenService.revokeToken(request.getRefreshToken());
+        log.info(" you logged out with success : ");
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/debug")
-    public void debug(){
-        System.out.println("-----------------------------------------------------------------------1");
-        System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
-        System.out.println("---------------------------------------------------------------------2");
-        System.out.println(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-        System.out.println("---------------------------------------------------------------------3");
-
-    }
+//    @GetMapping("/debug")
+//    public void debug(){
+//        System.out.println("-----------------------------------------------------------------------1");
+//        System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+//        System.out.println("---------------------------------------------------------------------2");
+//        System.out.println(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+//        System.out.println("---------------------------------------------------------------------3");
+//
+//    }
 }
