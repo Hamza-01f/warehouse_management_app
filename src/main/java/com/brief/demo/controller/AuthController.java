@@ -13,6 +13,7 @@ import com.brief.demo.service.UserService;
 import com.brief.demo.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -91,7 +92,11 @@ public class AuthController {
         );
 
         UserDetails userDetails = (UserDetails) auth.getPrincipal();
-        log.info(" the user was logged in with success : {}", ((UserDetails) auth.getPrincipal()).getUsername());
+
+        MDC.put("env" , "dev");
+        MDC.put("userRole", userDetails.getAuthorities().toString());
+        log.info(" the user was logged in with success with this email : {}",request.getEmail());
+
         String token = jwtUtil.generateAccessToken(userDetails);
         log.info(" jwt token was generated with success : ");
         RefreshToken refreshToken = jwtUtil.generateRefreshToken(userDetails);
@@ -104,6 +109,7 @@ public class AuthController {
                 .tokenType("Bearer")
                 .build();
         log.info(" log in response dto was build with success : ");
+        MDC.clear();
         ApiTokenResponse<TokenResponseDTO> response = ApiTokenResponse.success(tokenResponse , " you token is being retrieved with success : ");
        return ResponseEntity.ok(response);
     }
