@@ -39,8 +39,9 @@ public class AuthController {
     @PostMapping("/register")
     @PreAuthorize("hasAuthority('USER_CREATE')")
     public ResponseEntity<AuthResponseDTO> register(@RequestBody RegisterRequestDTO request) {
+        log.info(" user service is being called to register him : ");
         AuthResponseDTO response = userService.register(request);
-        log.info("user was registered with success");
+        log.info(" user was registered with success : {}" , request.getFirstName());
         return ResponseEntity.ok(response);
     }
 
@@ -48,9 +49,8 @@ public class AuthController {
     public ResponseEntity<ApiTokenResponse<TokenResponseDTO>> refreshToken(@RequestBody RefreshTokenRequestDTO request) {
 
         String refreshToken = request.getRefreshToken();
-
         RefreshToken token = refreshTokenService.getByToken(refreshToken);
-
+        log.info(" refresh token was taken from database with success : ");
 
         if (token == null) {
             log.error(" the token was not found : {}", token);
@@ -63,10 +63,13 @@ public class AuthController {
         }
 
         refreshTokenService.revokeToken(request.getRefreshToken());
-
+        log.info(" the token {} was revoked with seccess : ",request.getRefreshToken());
         UserDetails userDetails = userService.loadUserByUsername(token.getUser().getEmail());
+        log.info(" loading the user with success : ");
         String newAccessToken = jwtUtil.generateAccessToken(userDetails);
+        log.info(" generating new access token with success : ");
         RefreshToken newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
+        log.info(" generating new refresh token with success : ");
 
         TokenResponseDTO tokenResponse = TokenResponseDTO.builder()
                 .accessToken(newAccessToken)
@@ -74,6 +77,8 @@ public class AuthController {
                 .tokenType("Bearer")
                 .expiresIn(15 * 60)
                 .build();
+
+        log.info(" building token response dto with success : ");
 
         ApiTokenResponse<TokenResponseDTO> response = ApiTokenResponse.success(tokenResponse , "your token is this : ");
         return ResponseEntity.ok(response);
@@ -86,9 +91,11 @@ public class AuthController {
         );
 
         UserDetails userDetails = (UserDetails) auth.getPrincipal();
+        log.info(" the user was logged in with success : {}", ((UserDetails) auth.getPrincipal()).getUsername());
         String token = jwtUtil.generateAccessToken(userDetails);
+        log.info(" jwt token was generated with success : ");
         RefreshToken refreshToken = jwtUtil.generateRefreshToken(userDetails);
-
+        log.info(" refresh token was generated with success : ");
         TokenResponseDTO tokenResponse = TokenResponseDTO
                 .builder()
                 .accessToken(token)
@@ -96,8 +103,7 @@ public class AuthController {
                 .expiresIn( 15 * 60 )
                 .tokenType("Bearer")
                 .build();
-
-        log.info(" the user was logged in with success : {}", auth.getPrincipal());
+        log.info(" log in response dto was build with success : ");
         ApiTokenResponse<TokenResponseDTO> response = ApiTokenResponse.success(tokenResponse , " you token is being retrieved with success : ");
        return ResponseEntity.ok(response);
     }
@@ -105,17 +111,9 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody RefreshTokenRequestDTO request) {
         refreshTokenService.revokeToken(request.getRefreshToken());
+        log.info(" the refresh token {} is being revoked : ",request.getRefreshToken());
         log.info(" you logged out with success : ");
         return ResponseEntity.ok().build();
     }
 
-//    @GetMapping("/debug")
-//    public void debug(){
-//        System.out.println("-----------------------------------------------------------------------1");
-//        System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
-//        System.out.println("---------------------------------------------------------------------2");
-//        System.out.println(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-//        System.out.println("---------------------------------------------------------------------3");
-//
-//    }
 }
