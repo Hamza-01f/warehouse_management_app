@@ -46,6 +46,7 @@ public class SecurityConfig {
                              .csrf(customiser -> customiser.disable())
                              .authorizeHttpRequests(request -> request
                                      .requestMatchers("/api/auth/**").permitAll()
+                                     .requestMatchers("/api/auth/debug").permitAll()
                                      .requestMatchers("/api/auth/register").hasRole("ADMIN")
                                      .requestMatchers("/api/products/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER" , "CLIENT")
                                      .requestMatchers("/api/inventory/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER")
@@ -84,7 +85,7 @@ public class SecurityConfig {
             List<String> roles = jwt.getClaimAsStringList("roles");
             if(roles != null){
                 roles.forEach(role ->
-                        grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + role))
+                        grantedAuthorities.add(new SimpleGrantedAuthority(role))
                 );
             }
 

@@ -101,4 +101,14 @@ public class AuthController {
         refreshTokenService.revokeToken(request.getRefreshToken());
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/debug")
+    public void debug(){
+        System.out.println("-----------------------------------------------------------------------1");
+        System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+        System.out.println("---------------------------------------------------------------------2");
+        System.out.println(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        System.out.println("---------------------------------------------------------------------3");
+
+    }
 }
