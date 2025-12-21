@@ -13,6 +13,7 @@ import com.brief.demo.service.UserService;
 import com.brief.demo.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,7 +33,9 @@ public class AuthController {
     private  final RefreshTokenService refreshTokenService;
     private final JwtUtil jwtUtil;
 
+
     @PostMapping("/register")
+    @PreAuthorize("hasAuthority('USER_CREATE')")
     public ResponseEntity<AuthResponseDTO> register(@RequestBody RegisterRequestDTO request) {
         AuthResponseDTO response = userService.register(request);
         return ResponseEntity.ok(response);

@@ -46,15 +46,19 @@ public class SecurityConfig {
                              .csrf(customiser -> customiser.disable())
                              .authorizeHttpRequests(request -> request
                                      .requestMatchers("/api/auth/**").permitAll()
-                                     .requestMatchers("/api/products/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER")
-                                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                                     .requestMatchers("/api/auth/register").hasRole("ADMIN")
+                                     .requestMatchers("/api/products/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER" , "CLIENT")
                                      .requestMatchers("/api/inventory/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER")
-                                     .requestMatchers("/api/shipment/**").hasRole("WAREHOUSE_MANAGER")
+                                     .requestMatchers("/api/shipment/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER","CLIENT")
                                      .requestMatchers("/api/orders/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER","CLIENT")
-                                     .anyRequest().authenticated())
-//                           .formLogin(Customizer.withDefaults())
-//                             .httpBasic(Customizer.withDefaults())
-                                 .oauth2ResourceServer(oauth -> oauth
+                                     .requestMatchers("/api/sales-orders/**").hasRole("ADMIN")
+                                     .requestMatchers("/api/backorders/**").hasRole("ADMIN")
+                                     .requestMatchers("/api/purchase-orders/**").hasAnyRole("ADMIN" , "WAREHOUSE_MANAGER")
+                                     .requestMatchers("/api/suppliers/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER","CLIENT")
+                                     .requestMatchers("/api/warehouses/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER")
+                             )
+
+                             .oauth2ResourceServer(oauth -> oauth
                                          .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                                  )
                              .sessionManagement(session -> session
