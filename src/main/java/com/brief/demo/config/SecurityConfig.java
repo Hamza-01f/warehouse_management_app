@@ -43,7 +43,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws  Exception{
          return  httpSecurity
-                             .csrf(customiser -> customiser.disable())
+                             .csrf(c -> c.disable())
                              .authorizeHttpRequests(request -> request
                                      .requestMatchers("/api/auth/**").permitAll()
                                      .requestMatchers("/api/auth/debug").permitAll()
@@ -58,7 +58,6 @@ public class SecurityConfig {
                                      .requestMatchers("/api/suppliers/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER","CLIENT")
                                      .requestMatchers("/api/warehouses/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER")
                              )
-
                              .oauth2ResourceServer(oauth -> oauth
                                          .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                                  )

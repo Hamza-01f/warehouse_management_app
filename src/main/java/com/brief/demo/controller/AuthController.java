@@ -40,37 +40,39 @@ public class AuthController {
     @PostMapping("/register")
     @PreAuthorize("hasAuthority('USER_CREATE')")
     public ResponseEntity<AuthResponseDTO> register(@RequestBody RegisterRequestDTO request) {
-        log.info(" user service is being called to register him : ");
+
+        log.info("Register request received");
+
         AuthResponseDTO response = userService.register(request);
-        log.info(" user was registered with success : {}" , request.getFirstName());
+
+        log.info("User registered successfully");
+
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<ApiTokenResponse<TokenResponseDTO>> refreshToken(@RequestBody RefreshTokenRequestDTO request) {
 
-        String refreshToken = request.getRefreshToken();
-        RefreshToken token = refreshTokenService.getByToken(refreshToken);
-        log.info(" refresh token was taken from database with success : ");
+        log.info("Refresh token request received");
+        RefreshToken token = refreshTokenService.getByToken(request.getRefreshToken());
 
         if (token == null) {
-            log.error(" the token was not found : {}", token);
+            log.warn("Refresh token not found");
             throw new RuntimeException("Refresh token not found");
         }
 
         if (token.isRevoked() || token.getExpiryDate().isBefore(LocalDateTime.now())) {
-            log.error(" the token either revoked or expired : {}",token);
+            log.warn("Refresh token expired or revoked");
             throw new RuntimeException("Refresh token expired or revoked");
         }
 
         refreshTokenService.revokeToken(request.getRefreshToken());
-        log.info(" the token {} was revoked with seccess : ",request.getRefreshToken());
+        log.info("Old refresh token revoked");
         UserDetails userDetails = userService.loadUserByUsername(token.getUser().getEmail());
-        log.info(" loading the user with success : ");
         String newAccessToken = jwtUtil.generateAccessToken(userDetails);
-        log.info(" generating new access token with success : ");
         RefreshToken newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
-        log.info(" generating new refresh token with success : ");
+
+        log.info("New tokens generated");
 
         TokenResponseDTO tokenResponse = TokenResponseDTO.builder()
                 .accessToken(newAccessToken)
@@ -79,7 +81,6 @@ public class AuthController {
                 .expiresIn(15 * 60)
                 .build();
 
-        log.info(" building token response dto with success : ");
 
         ApiTokenResponse<TokenResponseDTO> response = ApiTokenResponse.success(tokenResponse , "your token is this : ");
         return ResponseEntity.ok(response);
@@ -87,20 +88,22 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiTokenResponse<TokenResponseDTO>> login(@RequestBody LoginRequestDTO request) {
+
+        log.info("Login attempt started");
+
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail() , request.getPassword())
         );
 
         UserDetails userDetails = (UserDetails) auth.getPrincipal();
 
-        MDC.put("env" , "dev");
-        MDC.put("userRole", userDetails.getAuthorities().toString());
-        log.info(" the user was logged in with success with this email : {}",request.getEmail());
+        log.info("User authenticated successfully");
 
         String token = jwtUtil.generateAccessToken(userDetails);
-        log.info(" jwt token was generated with success : ");
         RefreshToken refreshToken = jwtUtil.generateRefreshToken(userDetails);
-        log.info(" refresh token was generated with success : ");
+
+        log.info("Access and refresh tokens generated");
+
         TokenResponseDTO tokenResponse = TokenResponseDTO
                 .builder()
                 .accessToken(token)
@@ -116,9 +119,13 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody RefreshTokenRequestDTO request) {
+
+        log.info("Logout request received");
+
         refreshTokenService.revokeToken(request.getRefreshToken());
-        log.info(" the refresh token {} is being revoked : ",request.getRefreshToken());
-        log.info(" you logged out with success : ");
+
+        log.info("User logged out successfully");
+
         return ResponseEntity.ok().build();
     }
 
