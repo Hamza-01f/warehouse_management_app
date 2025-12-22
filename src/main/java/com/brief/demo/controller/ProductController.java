@@ -113,7 +113,7 @@ public class ProductController {
         productService.activateProduct(id);
 
         log.info("Product {} activated successfully", id);
-        
+
         return ResponseEntity.ok(new ApiResponseDTO("Product activated successfully", true));
     }
 }
