@@ -1,0 +1,17 @@
+services:
+  keycloak:
+    container_name: keycloak_demo
+    image: keycloak/keycloak:25.0.5
+
+    ports:
+      - 9090:8080
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: password
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    command:
+      - 'start-dev'
+
+volumes:
+  keycloak_data:
