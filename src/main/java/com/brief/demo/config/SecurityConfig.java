@@ -58,46 +58,11 @@ public class SecurityConfig {
                                      .requestMatchers("/api/suppliers/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER","CLIENT")
                                      .requestMatchers("/api/warehouses/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER")
                              )
-                             .oauth2ResourceServer(oauth -> oauth
-                                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                                 )
+                             .oauth2ResourceServer(oauth -> oauth.jwt())
                              .sessionManagement(session -> session
                                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                              .build();
 
-    }
-
-
-    @Bean
-    public JwtDecoder jwtDecoder() {
-        String SECRET_KEY = "my-super-secret-key-my-super-secret-key";
-        SecretKey key = new SecretKeySpec(SECRET_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-        return NimbusJwtDecoder.withSecretKey(key).build();
-    }
-
-    @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-
-            List<String> roles = jwt.getClaimAsStringList("roles");
-            if(roles != null){
-                roles.forEach(role ->
-                        grantedAuthorities.add(new SimpleGrantedAuthority(role))
-                );
-            }
-
-            List<String> permissions = jwt.getClaimAsStringList("permissions");
-            if(permissions != null){
-                permissions.forEach(permission ->
-                        grantedAuthorities.add(new SimpleGrantedAuthority(permission))
-                );
-            }
-
-            return  grantedAuthorities;
-        });
-        return converter;
     }
 
 

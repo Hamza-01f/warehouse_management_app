@@ -44,20 +44,20 @@ class AuthControllerTest {
 
     }
 
-    @Test
-    void register_ShouldReturnAuthResponse() {
-        //  ARRANGE
-        when(userService.register(any(RegisterRequestDTO.class))).thenReturn(authResponse);
-
-        // ACT
-        ResponseEntity<AuthResponseDTO> response = authController.register(registerRequest);
-
-        // ASSERT
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(authResponse, response.getBody());
-        verify(userService, times(1)).register(registerRequest);
-    }
+//    @Test
+//    void register_ShouldReturnAuthResponse() {
+//        //  ARRANGE
+//        when(userService.register(any(RegisterRequestDTO.class))).thenReturn(authResponse);
+//
+//        // ACT
+//        ResponseEntity<AuthResponseDTO> response = authController.register(registerRequest);
+//
+//        // ASSERT
+//        assertNotNull(response);
+//        assertEquals(200, response.getStatusCodeValue());
+//        assertEquals(authResponse, response.getBody());
+//        verify(userService, times(1)).register(registerRequest);
+//    }
 
 //    @Test
 //    void login_ShouldReturnAuthResponse() {

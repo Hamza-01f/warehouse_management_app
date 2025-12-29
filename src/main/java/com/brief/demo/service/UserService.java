@@ -8,7 +8,6 @@ import com.brief.demo.exception.ResourceNotFoundException;
 import com.brief.demo.mappers.UsersMapper;
 import com.brief.demo.model.Roles;
 import com.brief.demo.model.User;
-import com.brief.demo.model.UserPrincipal;
 import com.brief.demo.repository.UserRepository;
 import com.brief.demo.repository.UserRoleRepository;
 import jakarta.transaction.Transactional;
@@ -19,12 +18,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class UserService implements UserDetailsService {
+public class UserService{
 
     private final UserRepository userRepository;
     private final UsersMapper userMapper;
@@ -56,15 +53,4 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws ResourceNotFoundException {
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found with email: " + email)
-                );
-
-        return new UserPrincipal(user);
-
-    }
 }
