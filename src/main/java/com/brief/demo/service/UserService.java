@@ -66,6 +66,5 @@ public class UserService implements UserDetailsService {
 
         return new UserPrincipal(user);
 
-
     }
 }
