@@ -16,11 +16,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 import javax.crypto.SecretKey;
@@ -58,11 +60,37 @@ public class SecurityConfig {
                                      .requestMatchers("/api/suppliers/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER","CLIENT")
                                      .requestMatchers("/api/warehouses/**").hasAnyRole("ADMIN","WAREHOUSE_MANAGER")
                              )
-                             .oauth2ResourceServer(oauth -> oauth.jwt())
+                             .oauth2ResourceServer(oauth -> oauth.jwt(
+                                     jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
+                             ))
                              .sessionManagement(session -> session
                                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                              .build();
 
+    }
+
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+
+            List<GrantedAuthority> authorities = new ArrayList<>();
+
+            Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
+
+            if (resourceAccess != null && resourceAccess.containsKey("logistics-api")) {
+                Map<String, Object> client = (Map<String, Object>) resourceAccess.get("logistics-api");
+                List<String> roles = (List<String>) client.get("roles");
+
+                roles.forEach(role ->
+                        authorities.add(new SimpleGrantedAuthority("ROLE_" + role))
+                );
+            }
+
+            return authorities;
+        });
+
+        return converter;
     }
 
 

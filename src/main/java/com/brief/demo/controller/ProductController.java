@@ -116,4 +116,5 @@ public class ProductController {
 
         return ResponseEntity.ok(new ApiResponseDTO("Product activated successfully", true));
     }
+
 }

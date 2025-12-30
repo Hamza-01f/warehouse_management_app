@@ -15,9 +15,9 @@ spring:
 
   security:
     oauth2:
-      resource server:
+      resourceserver:
         jwt:
-          issuer-uri: http://localhost:9090/realms/logistcs-realm
+          issuer-uri: http://localhost:9090/realms/logistics-realm
 
 server:
   port: 8090
