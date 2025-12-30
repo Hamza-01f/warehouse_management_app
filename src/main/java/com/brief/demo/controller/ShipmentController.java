@@ -21,42 +21,36 @@ public class ShipmentController {
     private final ShipmentService shipmentService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('SHIPMENT_CREATE') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<ShipmentResponseDTO> createShipment(@RequestBody ShipmentRequestDTO request) {
         ShipmentResponseDTO response = shipmentService.createShipment(request);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('SHIPMENT_READ') or hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<List<ShipmentResponseDTO>> getAllShipments() {
         List<ShipmentResponseDTO> shipments = shipmentService.getShipmentsByStatus(null);
         return ResponseEntity.ok(shipments);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('SHIPMENT_READ') or hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<ShipmentResponseDTO> getShipmentById(@PathVariable Long id) {
         ShipmentResponseDTO shipment = shipmentService.getShipmentById(id);
         return ResponseEntity.ok(shipment);
     }
 
     @GetMapping("/order/{orderId}")
-    @PreAuthorize("hasAuthority('SHIPMENT_READ') or hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<ShipmentResponseDTO> getShipmentByOrder(@PathVariable Long orderId) {
         ShipmentResponseDTO shipment = shipmentService.getShipmentByOrder(orderId);
         return ResponseEntity.ok(shipment);
     }
 
     @GetMapping("/status/{status}")
-    @PreAuthorize("hasAuthority('SHIPMENT_READ') or hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<List<ShipmentResponseDTO>> getShipmentsByStatus(@PathVariable ShipmentStatus status) {
         List<ShipmentResponseDTO> shipments = shipmentService.getShipmentsByStatus(status);
         return ResponseEntity.ok(shipments);
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAuthority('SHIPMENT_UPDATE') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<ShipmentResponseDTO> updateShipmentStatus(
             @PathVariable Long id,
             @RequestParam ShipmentStatus status) {

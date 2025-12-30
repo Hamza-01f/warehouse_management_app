@@ -19,35 +19,30 @@ public class PurchaseOrderController {
     private final PurchaseOrderService purchaseOrderService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('PURCHASE_ORDER_CREATE') or hasRole('ADMIN')")
     public ResponseEntity<PurchaseOrderResponseDTO> createPurchaseOrder(@RequestBody PurchaseOrderRequestDTO request) {
         PurchaseOrderResponseDTO response = purchaseOrderService.createPurchaseOrder(request);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('PURCHASE_ORDER_READ') or hasRole('ADMIN")
     public ResponseEntity<List<PurchaseOrderResponseDTO>> getAllPurchaseOrders() {
         List<PurchaseOrderResponseDTO> purchaseOrders = purchaseOrderService.getAllPurchaseOrders();
         return ResponseEntity.ok(purchaseOrders);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('PURCHASE_ORDER_READ') or hasRole('ADMIN")
     public ResponseEntity<PurchaseOrderResponseDTO> getPurchaseOrderById(@PathVariable Long id) {
         PurchaseOrderResponseDTO purchaseOrder = purchaseOrderService.getPurchaseOrderById(id);
         return ResponseEntity.ok(purchaseOrder);
     }
 
     @GetMapping("/supplier/{supplierId}")
-    @PreAuthorize("hasAuthority('PURCHASE_ORDER_READ') or hasRole('ADMIN")
     public ResponseEntity<List<PurchaseOrderResponseDTO>> getPurchaseOrdersBySupplier(@PathVariable Long supplierId) {
         List<PurchaseOrderResponseDTO> purchaseOrders = purchaseOrderService.getPurchaseOrdersBySupplier(supplierId);
         return ResponseEntity.ok(purchaseOrders);
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAuthority('PURCHASE_ORDER_UPDATE') or hasRole('ADMIN")
     public ResponseEntity<PurchaseOrderResponseDTO> updatePurchaseOrderStatus(
             @PathVariable Long id,
             @RequestBody PurchaseOrderUpdateDTO request) {
@@ -56,7 +51,6 @@ public class PurchaseOrderController {
     }
 
     @PostMapping("/{id}/receive")
-    @PreAuthorize("hasAuthority('PURCHASE_ORDER_UPDATE') or hasRole('ADMIN')")
     public ResponseEntity<PurchaseOrderResponseDTO> receivePurchaseOrder(@PathVariable Long id) {
         PurchaseOrderUpdateDTO updateRequest = new PurchaseOrderUpdateDTO();
         updateRequest.setStatus(com.brief.demo.enums.POStatus.RECEIVED);
@@ -66,7 +60,6 @@ public class PurchaseOrderController {
     }
 
     @PatchMapping("/{id}/approve")
-    @PreAuthorize("hasAuthority('PURCHASE_ORDER_UPDATE') or hasRole('ADMIN")
     public ResponseEntity<PurchaseOrderResponseDTO> approvePurchaseOrder(@PathVariable Long id) {
         PurchaseOrderResponseDTO approvedOrder = purchaseOrderService.approvePurchaseOrder(id);
         return ResponseEntity.ok(approvedOrder);
