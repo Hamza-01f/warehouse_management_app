@@ -13,5 +13,11 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  security:
+    oauth2:
+      resource server:
+        jwt:
+          issuer-uri: http://localhost:9090/realms/logistcs-realm
+
 server:
   port: 8090
